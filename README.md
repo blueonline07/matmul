@@ -1,265 +1,223 @@
-# Matrix Multiplication Assignment
+# Matrix Multiplication Project
 
-This project structure is designed for implementing and comparing various matrix multiplication algorithms as per the assignment requirements.
+High-performance matrix multiplication implementations using various algorithms and parallelization techniques.
 
-## Assignment Requirements
+## Features
 
-You are required to implement:
-1. **Naive matrix multiplication** - Your own implementation
-2. **Strassen's algorithm** - Divide and conquer approach
-3. **OpenMP parallelization** - For shared-memory platforms (laptops/notebooks)
-4. **MPI parallelization** - For distributed-memory platforms (clusters)
-5. **Hybrid MPI+OpenMP** - Marriage of MPI processes and OpenMP threads
+Implemented algorithms:
+1. **Naive matrix multiplication** - Standard O(n³) triple-loop implementation
+2. **Strassen's algorithm** - Divide and conquer approach with O(n^2.807) complexity
+3. **OpenMP parallelization** - Shared-memory parallelism for multi-core systems
+4. **MPI parallelization** - Distributed-memory parallelism for clusters
+5. **Hybrid MPI+OpenMP** - Combined approach for maximum performance
 
-Each implementation must:
-- Be tested for correctness
-- Be benchmarked for performance (100×100 to 10,000×10,000)
-- Be compared with existing matrix multiplication libraries
+Each implementation includes:
+- Correctness validation tests
+- Performance benchmarking (100×100 to 1,000×1,000+)
+- Comparative analysis
 
 ## Project Structure
 
 ```
 matmul/
-├── Makefile                    # Build configuration with Make
-├── README.md                   # This file
-├── .gitignore                  # Git ignore rules
-├── include/                    # Header files (YOU IMPLEMENT)
-│   ├── matrix.h               # Matrix structure and function prototypes
-│   └── utils.h                # Utility functions (timing, validation, etc.)
-├── src/                       # Implementation files (YOU IMPLEMENT)
-│   ├── naive_matmul.c         # Naive O(n³) implementation
-│   ├── strassen_matmul.c      # Strassen's O(n^2.807) algorithm
-│   ├── openmp_matmul.c        # OpenMP shared-memory parallel version
-│   ├── mpi_matmul.c           # MPI distributed-memory parallel version
-│   ├── hybrid_matmul.c        # Hybrid MPI+OpenMP implementation
-│   └── utils.c                # Utility functions implementation
-├── tests/                     # Testing and benchmarking (YOU IMPLEMENT)
-│   ├── test_correctness.c     # Validate correctness of implementations
-│   └── benchmark.c            # Performance benchmarking suite
-├── scripts/                   # Automation scripts
-│   └── run_all_benchmarks.sh  # Script to run comprehensive benchmarks
-├── bin/                       # Compiled executables (created by make)
-├── obj/                       # Object files (created by make)
-└── results/                   # Benchmark results (created during testing)
+├── Makefile                      # Build configuration
+├── README.md                     # This file
+├── .gitignore                    # Git ignore rules
+├── include/                      # Header files
+│   └── matrix.h                  # Matrix class and API
+├── src/                          # Implementation files
+│   ├── matrix.cpp                # Matrix class implementation
+│   ├── multiply_naive.cpp        # Naive O(n³) implementation
+│   ├── multiply_strassen.cpp     # Strassen's algorithm
+│   ├── multiply_openmp.cpp       # OpenMP parallelized version
+│   ├── multiply_mpi.cpp          # MPI distributed version
+│   └── multiply_hybrid.cpp       # Hybrid MPI+OpenMP (optional)
+├── tests/                        # Testing and benchmarking
+│   ├── test_correctness.cpp      # Correctness validation suite
+│   └── test_performance.cpp      # Performance benchmarking suite
+├── bin/                          # Compiled executables (created by make)
+│   ├── correctness               # Correctness test binary
+│   └── performance               # Performance test binary
+└── obj/                          # Object files (created by make)
 ```
 
 ## Getting Started
 
-### Prerequisites
+## Prerequisites
 
-- **C/C++ Compiler**: GCC with OpenMP support
-- **MPI Implementation**: OpenMPI or MPICH
-- **Make**: Build automation tool
+- **C++ Compiler**: GCC 15+ with C++17 support
+- **OpenMP**: For shared-memory parallelism
+- **MPI**: OpenMPI or MPICH for distributed computing
+- **Make**: Build automation
 
-On macOS:
+### Installation on macOS
+
 ```bash
-# Install GCC with OpenMP
-brew install gcc
+# Install GCC with OpenMP support
+brew install gcc@15
 
 # Install OpenMPI
 brew install open-mpi
 ```
 
-On Linux:
+### Installation on Linux
+
 ```bash
 # Ubuntu/Debian
-sudo apt-get install gcc make libopenmpi-dev
+sudo apt-get install g++ make libopenmpi-dev
 
 # CentOS/RHEL
-sudo yum install gcc make openmpi-devel
+sudo yum install gcc-c++ make openmpi-devel
 ```
 
-### Building the Project
-
-The Makefile is already configured. Once you implement your code:
+## Building the Project
 
 ```bash
-# Build all implementations
+# Build all executables
 make
 
-# Build specific components
-make bin/naive
-make bin/strassen
-make bin/openmp
-make bin/mpi
-make bin/hybrid
+# Build specific targets
+make correctness      # Build correctness test suite
+make performance      # Build performance benchmark suite
 
 # Clean build artifacts
 make clean
-
-# Clean everything including results
-make cleanall
 ```
 
-## Implementation Guidelines
+## Implementation Details
 
-### 1. Matrix Structure (`include/matrix.h`)
+### Matrix Class (`include/matrix.h`, `src/matrix.cpp`)
 
-Define your matrix structure and API:
-- Matrix data structure (consider row-major vs column-major)
-- Creation/destruction functions
-- Matrix operations (add, subtract, multiply)
-- Helper functions (print, compare, validate)
+The `Matrix` class provides:
+- Contiguous memory storage (flat vector) for cache efficiency
+- Row-major ordering: `data[i * cols + j]` for element at (i, j)
+- Constructors, copy/move semantics
+- Element access operators
+- Initialization methods (random, identity, zeros, constant)
+- Arithmetic operators (+, -, scalar multiplication)
+- Utility methods (comparison, submatrix extraction, padding)
 
-### 2. Utility Functions (`include/utils.h`, `src/utils.c`)
+### Algorithms
 
-Implement utilities for:
-- **Timing**: High-resolution timing for benchmarking
-- **Initialization**: Random, identity, constant matrices
-- **Validation**: Compare results, check dimensions
-- **Performance metrics**: Calculate GFLOPS
+#### Naive Implementation (`src/multiply_naive.cpp`)
+- Standard triple-nested loop: O(n³)
+- Used as baseline for correctness and performance comparison
 
-### 3. Algorithm Implementations
+#### Strassen's Algorithm (`src/multiply_strassen.cpp`)
+- Recursive divide-and-conquer approach
+- 7 multiplications instead of 8: O(n^2.807)
+- Automatically pads non-power-of-2 matrices
+- Base case threshold for small matrices
 
-#### Naive Implementation (`src/naive_matmul.c`)
-- Standard triple-nested loop
-- Complexity: O(n³)
-- Use as baseline for correctness and performance
+#### OpenMP Implementation (`src/multiply_openmp.cpp`)
+- Parallelizes outer loops with `#pragma omp parallel for`
+- Automatic thread scheduling
+- Shared-memory parallelism for multi-core CPUs
 
-#### Strassen's Algorithm (`src/strassen_matmul.c`)
-- Recursive divide-and-conquer
-- 7 multiplications instead of 8
-- Base case threshold (switch to naive for small matrices)
-- Handle non-power-of-2 sizes (padding)
-- Complexity: O(n^2.807)
+#### MPI Implementation (`src/multiply_mpi.cpp`)
+- Row-wise data distribution strategy
+- Broadcast matrix B to all processes
+- Scatter rows of matrix A across processes
+- Gather results back to root process
 
-#### OpenMP Implementation (`src/openmp_matmul.c`)
-- Parallelize with `#pragma omp parallel for`
-- Consider loop collapse and scheduling strategies
-- Test with varying thread counts
+#### Hybrid Implementation (`src/multiply_hybrid.cpp`)
+- Combines MPI (inter-process) + OpenMP (intra-process)
+- Uses `MPI_Init_thread` with thread support
+- Optimal for multi-node clusters with multi-core nodes
 
-#### MPI Implementation (`src/mpi_matmul.c`)
-- Design data distribution strategy (row-wise, column-wise, block)
-- Handle communication (broadcast, scatter, gather)
-- Consider load balancing
+## Running Tests
 
-#### Hybrid Implementation (`src/hybrid_matmul.c`)
-- Combine MPI for inter-node and OpenMP for intra-node parallelism
-- Use `MPI_Init_thread` with appropriate thread level
-- Balance MPI processes and OpenMP threads
-
-### 4. Testing (`tests/test_correctness.c`)
-
-Devise testing approaches:
-- Compare against naive implementation
-- Test with known results (identity matrix, etc.)
-- Verify with small matrices (easy to check manually)
-- Test edge cases (different sizes, non-square matrices)
-
-### 5. Benchmarking (`tests/benchmark.c`)
-
-Conduct performance study:
-- Matrix sizes: 100×100, 1,000×1,000, up to 10,000×10,000
-- Measure execution time
-- Calculate GFLOPS: `(2 × n³) / (time × 10⁹)`
-- Vary parameters (threads, processes)
-- Generate data for plotting (CSV format)
-- Compare with libraries (BLAS, OpenBLAS, MKL)
-
-## Running the Programs
-
-### Individual Executables
+### Run All Tests
 
 ```bash
-# Naive implementation
-./bin/naive [matrix_size]
-
-# Strassen implementation
-./bin/strassen [matrix_size]
-
-# OpenMP implementation
-./bin/openmp [matrix_size] [num_threads]
-
-# MPI implementation
-mpirun -np [num_processes] ./bin/mpi [matrix_size]
-
-# Hybrid MPI+OpenMP
-mpirun -np [num_processes] ./bin/hybrid [matrix_size] [num_threads]
-```
-
-### Testing Suite
-
-```bash
+# Run both correctness and performance tests
 make test
 ```
 
-### Benchmark Suite
+This will:
+1. Build both test executables if needed
+2. Run correctness tests (validates all implementations)
+3. Run performance benchmarks (measures speed and GFLOPS)
+
+### Run Individual Tests
 
 ```bash
-make benchmark
+# Run only correctness tests
+./bin/correctness
 
-# Or run comprehensive benchmarks
-chmod +x scripts/run_all_benchmarks.sh
-./scripts/run_all_benchmarks.sh
+# Run only performance benchmarks
+./bin/performance
+```
+
+### MPI Tests
+
+```bash
+# Run with MPI (4 processes)
+mpirun -np 4 ./bin/correctness
+mpirun -np 4 ./bin/performance
 ```
 
 ## Performance Analysis
 
-### Metrics to Collect
+### Metrics
 
-1. **Execution time** vs matrix size
-2. **Speedup** = Time(serial) / Time(parallel)
-3. **Efficiency** = Speedup / Number of processors
-4. **GFLOPS** = (2 × n³) / (time × 10⁹)
-5. **Scalability**: Strong scaling and weak scaling
+1. **Execution time** - Wall-clock time in milliseconds
+2. **GFLOPS** - Giga floating-point operations per second: `(2 × n³) / (time × 10⁹)`
+3. **Speedup** - Ratio vs naive implementation: `Time(naive) / Time(parallel)`
+4. **Efficiency** - Speedup / Number of processors
 
-### Comparison Points
+### Expected Results
 
-- Compare all your implementations against each other
-- Compare against existing libraries:
-  - BLAS (Basic Linear Algebra Subprograms)
-  - OpenBLAS
-  - Intel MKL (Math Kernel Library)
-  - ATLAS
+- **Naive**: Baseline performance, O(n³) complexity
+- **Strassen**: Better for large matrices (n > 512), worse for small due to overhead
+- **OpenMP**: Near-linear speedup up to number of physical cores
+- **MPI**: Scales with number of processes, limited by communication overhead
+- **Hybrid**: Best performance on multi-node clusters
 
-### Visualization
+## Testing Framework
 
-Generate plots for:
-- Execution time vs matrix size
-- Speedup vs number of processors/threads
-- Efficiency vs number of processors/threads
-- GFLOPS comparison across implementations
+### Correctness Tests (`tests/test_correctness.cpp`)
 
-## Tips and Best Practices
+Validates all implementations against known results:
+- 2×2 matrix multiplication
+- Identity matrix multiplication (A × I = A)
+- Zero matrix multiplication (A × 0 = 0)
+- Non-square matrices (2×3 × 3×2)
+- Associativity: (A × B) × C = A × (B × C)
+- Cross-implementation consistency
 
-1. **Start small**: Implement and test with small matrices first
-2. **Verify correctness**: Always validate before benchmarking
-3. **Optimize compilation**: Use `-O3` flag for production runs
-4. **Cache optimization**: Consider blocking/tiling for better cache usage
-5. **Memory alignment**: Align memory for better vectorization
-6. **Profiling**: Use tools like `gprof`, `perf`, or `Instruments` (macOS)
-7. **Cluster testing**: Test MPI on actual cluster before large-scale runs
+### Performance Benchmarks (`tests/test_performance.cpp`)
 
-## Additional Considerations
+Measures execution time and GFLOPS for:
+- Matrix sizes: 100, 200, 500, 1000, etc.
+- Calculates GFLOPS: `(2 × n³) / (time × 10⁹)`
+- Computes speedup vs naive implementation
+- Outputs formatted results table
 
-### Strassen Algorithm
-- Overhead significant for small matrices
-- May use more memory than naive
-- Numerical stability considerations
+## Optimization Tips
 
-### OpenMP
-- Thread affinity and binding
-- False sharing in cache lines
-- Optimal number of threads (typically = number of cores)
+1. **Compiler flags**: Use `-O3` for aggressive optimization
+2. **Cache efficiency**: Contiguous memory access (row-major ordering)
+3. **Thread count**: Set to number of physical cores for OpenMP
+4. **MPI processes**: Balance communication vs computation overhead
+5. **Matrix blocking**: Consider tiling for better cache usage (future improvement)
+6. **Strassen threshold**: Tune base case size for optimal performance
 
-### MPI
-- Communication overhead
-- Load balancing
-- Network latency and bandwidth
+## Development Environment
 
-### Hybrid
-- Balance between MPI processes and OpenMP threads
-- Typically: fewer MPI processes × more OpenMP threads
-- Example: 4 nodes × 8 cores = 4 MPI processes × 8 threads
+- **Language**: C++17
+- **Build System**: Make
+- **Compiler**: GCC 15 (`g++-15`)
+- **MPI Compiler**: `mpic++`
+- **Parallelization**: OpenMP (`-fopenmp`), MPI
 
-## Resources
+## References
 
-- **Strassen Algorithm**: "Gaussian Elimination is not Optimal" (1969)
-- **OpenMP**: https://www.openmp.org/
-- **MPI**: https://www.mpi-forum.org/
-- **BLAS**: http://www.netlib.org/blas/
-- **Performance Analysis**: "Introduction to High Performance Computing for Scientists and Engineers"
+- Strassen, V. (1969). "Gaussian Elimination is not Optimal"
+- OpenMP: https://www.openmp.org/
+- MPI Forum: https://www.mpi-forum.org/
+- BLAS Reference: http://www.netlib.org/blas/
 
 ## License
 
-This is an academic assignment project.
+Academic project for educational purposes.
