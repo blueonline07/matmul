@@ -1,0 +1,22 @@
+# Build artifacts
+bin/
+obj/
+*.o
+*.out
+
+# Results
+results/*.csv
+results/*.txt
+
+# macOS
+.DS_Store
+
+# Editor files
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+
+# Backup files
+*.bak
