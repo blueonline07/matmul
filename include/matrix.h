@@ -158,11 +158,23 @@ public:
      */
     static Matrix multiplyNaive(const Matrix &A, const Matrix &B);
 
+    /**
+     * Strassen's matrix multiplication algorithm
+     * Divide-and-conquer approach with O(n^2.807) complexity
+     */
     static Matrix multiplyStrassen(const Matrix &A, const Matrix &B);
+
     /**
      * OpenMP parallelized naive matrix multiplication
      */
     static Matrix multiplyOpenMP(const Matrix &A, const Matrix &B);
+
+    /**
+     * OpenMP parallelized Strassen's algorithm
+     * Combines Strassen's divide-and-conquer with OpenMP threading
+     * TODO: Implementation pending
+     */
+    static Matrix multiplyStrassenOpenMP(const Matrix &A, const Matrix &B);
 
     /**
      * MPI-based matrix multiplication
@@ -171,10 +183,24 @@ public:
     static Matrix multiplyMPI(const Matrix &A, const Matrix &B);
 
     /**
+     * MPI-based Strassen's algorithm
+     * Distributed Strassen's algorithm using MPI
+     * TODO: Implementation pending
+     */
+    static Matrix multiplyStrassenMPI(const Matrix &A, const Matrix &B);
+
+    /**
      * Hybrid MPI+OpenMP matrix multiplication
      * Handles MPI internally - same interface as other methods
      */
     static Matrix multiplyHybrid(const Matrix &A, const Matrix &B);
+
+    /**
+     * Hybrid MPI+OpenMP Strassen's algorithm
+     * Combines MPI distribution with OpenMP threading for Strassen's algorithm
+     * TODO: Implementation pending
+     */
+    static Matrix multiplyStrassenHybrid(const Matrix &A, const Matrix &B);
 
     /* ========================================================================
      * UTILITY METHODS

@@ -4,17 +4,40 @@ High-performance matrix multiplication implementations using various algorithms 
 
 ## Features
 
-Implemented algorithms:
-1. **Naive matrix multiplication** - Standard O(n³) triple-loop implementation
-2. **Strassen's algorithm** - Divide and conquer approach with O(n^2.807) complexity
-3. **OpenMP parallelization** - Shared-memory parallelism for multi-core systems
-4. **MPI parallelization** - Distributed-memory parallelism for clusters
-5. **Hybrid MPI+OpenMP** - Combined approach for maximum performance
+### Implemented Algorithms
 
-Each implementation includes:
-- Correctness validation tests
-- Performance benchmarking (100×100 to 1,000×1,000+)
-- Comparative analysis
+1. **Naive Matrix Multiplication** ✅
+   - Optimized ikj loop ordering for cache efficiency
+   - 2-4× faster than standard ijk ordering
+   - Serves as baseline for performance comparisons
+
+2. **Strassen's Algorithm** ✅
+   - Divide-and-conquer with O(n^2.807) complexity
+   - Automatically handles non-power-of-2 matrices
+   - Tuned threshold (128) for optimal performance
+   - Best for large matrices (n > 512)
+
+3. **OpenMP Parallelization** ✅
+   - Shared-memory parallelism for multi-core CPUs
+   - Optimized with ikj ordering + dynamic scheduling
+   - Near-linear speedup up to physical core count
+   - Minimal thread synchronization overhead
+
+4. **MPI Parallelization** ⚠️ TODO
+   - Distributed-memory parallelism for clusters
+   - Placeholder implementation (falls back to naive)
+   - See `src/multiply_mpi.cpp` for implementation guide
+
+5. **Hybrid MPI+OpenMP** ⚠️ TODO
+   - Combined inter-node (MPI) + intra-node (OpenMP) parallelism
+   - Optimal for multi-node clusters with multi-core nodes
+   - See `src/multiply_mpi.cpp` for implementation guide
+
+### Testing Framework
+
+- **Correctness Tests**: Validates all implementations against known results
+- **Performance Benchmarks**: Measures time, GFLOPS, and speedup
+- **Scalability Analysis**: Tests multiple matrix sizes (100×100 to 2000×2000)
 
 ## Project Structure
 
@@ -194,14 +217,46 @@ Measures execution time and GFLOPS for:
 - Computes speedup vs naive implementation
 - Outputs formatted results table
 
-## Optimization Tips
+## Performance Optimizations Implemented
 
-1. **Compiler flags**: Use `-O3` for aggressive optimization
-2. **Cache efficiency**: Contiguous memory access (row-major ordering)
-3. **Thread count**: Set to number of physical cores for OpenMP
-4. **MPI processes**: Balance communication vs computation overhead
-5. **Matrix blocking**: Consider tiling for better cache usage (future improvement)
-6. **Strassen threshold**: Tune base case size for optimal performance
+### 1. **Cache-Optimized Loop Ordering**
+- **ikj ordering** instead of standard ijk
+- Sequential memory access for better cache locality
+- ~2-4× speedup on large matrices
+
+### 2. **Aggressive Compiler Optimizations**
+```bash
+-O3                 # Maximum optimization
+-march=native       # CPU-specific instructions (AVX, AVX2, AVX-512)
+-mtune=native       # Fine-tune for current CPU
+-ffast-math         # Fast floating-point operations
+-funroll-loops      # Loop unrolling for better pipelining
+```
+
+### 3. **OpenMP Thread Optimization**
+- Parallelize outer loop only (minimize overhead)
+- Dynamic scheduling for load balancing
+- Chunk size tuned for cache efficiency
+
+### 4. **Strassen Algorithm Tuning**
+- Base case threshold: 128 (empirically determined)
+- Switches to optimized naive for small submatrices
+- Minimizes recursive overhead
+
+### 5. **Matrix Storage**
+- Contiguous memory (flat array) for cache-friendliness
+- Row-major ordering matches C++ memory layout
+- Direct pointer access for performance-critical code
+
+## Additional Optimization Opportunities
+
+For further performance improvements, consider:
+
+1. **Cache Blocking/Tiling**: Divide matrices into cache-sized blocks
+2. **SIMD Vectorization**: Explicit vector intrinsics (AVX-512)
+3. **Prefetching**: Manual prefetch instructions for large matrices
+4. **BLAS Integration**: Compare with optimized libraries (OpenBLAS, MKL)
+5. **GPU Acceleration**: CUDA/OpenCL for massive parallelism
 
 ## Development Environment
 

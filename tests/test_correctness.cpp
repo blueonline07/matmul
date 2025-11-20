@@ -3,8 +3,28 @@
 #include <cmath>
 #include <functional>
 #include <vector>
+#include <string>
 
 using namespace std;
+
+/**
+ * Correctness Test Suite for Matrix Multiplication
+ * 
+ * Test-Driven Development (TDD) approach:
+ * - Each implementation must pass identical test cases
+ * - Tests cover edge cases, special matrices, and general correctness
+ * - Cross-implementation consistency verification
+ * 
+ * Test categories:
+ * 1. Basic operations (small matrices with known results)
+ * 2. Special matrices (identity, zero)
+ * 3. Non-square matrices (rectangular)
+ * 4. Mathematical properties (associativity)
+ * 5. Cross-implementation consistency
+ *
+ * All implementations should produce numerically identical results
+ * within floating-point tolerance (1e-9 for most cases).
+ */
 
 // Test result tracking
 int total_tests = 0;
@@ -59,8 +79,11 @@ vector<Implementation> implementations = {
     {"Naive", Matrix::multiplyNaive, 1e-9},
     {"Strassen", Matrix::multiplyStrassen, 1e-9},
     {"OpenMP", Matrix::multiplyOpenMP, 1e-9},
+    {"StrassenOpenMP", Matrix::multiplyStrassenOpenMP, 1e-9},
     {"MPI", Matrix::multiplyMPI, 1e-9},
-    {"Hybrid", Matrix::multiplyHybrid, 1e-9}};
+    {"StrassenMPI", Matrix::multiplyStrassenMPI, 1e-9},
+    {"Hybrid", Matrix::multiplyHybrid, 1e-9},
+    {"StrassenHybrid", Matrix::multiplyStrassenHybrid, 1e-9}};
 
 // ============================================================================
 // Common Test Cases (run against all implementations)
