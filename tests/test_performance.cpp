@@ -6,6 +6,7 @@
 #include <string>
 #include <algorithm>
 #include <cstdlib>
+#include <mpi.h>
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -132,6 +133,9 @@ void print_summary()
 
 int main(int argc, char* argv[])
 {
+    // Initialize MPI
+    MPI_Init(&argc, &argv);
+    
     cout << "\n╔══════════════════════════════════════════════════════════════════════╗" << endl;
     cout << "║         Matrix Multiplication - Performance Benchmark Suite          ║" << endl;
     cout << "╚══════════════════════════════════════════════════════════════════════╝" << endl;
@@ -187,10 +191,9 @@ int main(int argc, char* argv[])
     omp_threads = omp_get_max_threads();
     #endif
     
-    // Check if running with MPI (via environment or command)
-    // If mpirun is used, OMPI_COMM_WORLD_SIZE will be set
-    const char* mpi_size_str = getenv("OMPI_COMM_WORLD_SIZE");
-    int mpi_size = mpi_size_str ? atoi(mpi_size_str) : 1;
+    // Check if running with MPI
+    int mpi_size = 1;
+    MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
     
     if (mpi_size > 1)
     {
@@ -260,5 +263,8 @@ int main(int argc, char* argv[])
     cout << "  - Results may vary based on system load and thermal throttling" << endl;
     cout << "  - For MPI tests, run with: mpirun -np <processes> ./bin/performance" << endl;
 
+    // Finalize MPI
+    MPI_Finalize();
+    
     return 0;
 }

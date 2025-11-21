@@ -48,8 +48,6 @@ quick_test() {
     echo ""
     
     export OMP_NUM_THREADS=8
-    export OMP_PLACES=cores
-    export OMP_PROC_BIND=close
     
     ./bin/performance $size | grep -E "(Testing|Naive|OpenMP|Size|GFLOPS|Speedup)"
 }
@@ -62,9 +60,6 @@ run_all() {
     echo -e "${GREEN}=== Comprehensive Benchmark ===${NC}"
     echo "Sizes: ${sizes[@]}"
     echo ""
-    
-    export OMP_PLACES=cores
-    export OMP_PROC_BIND=close
     
     for size in "${sizes[@]}"; do
         echo "--- ${size}×${size} ---"
@@ -82,9 +77,6 @@ run_scaling() {
     echo -e "${GREEN}=== Strong Scaling Test ===${NC}"
     echo "Matrix Size: ${size}×${size}"
     echo ""
-    
-    export OMP_PLACES=cores
-    export OMP_PROC_BIND=close
     
     echo "OpenMP Scaling:"
     for threads in 1 2 4 8; do
@@ -114,9 +106,6 @@ run_numa() {
     echo -e "${GREEN}=== NUMA-Optimized Test ===${NC}"
     echo "Matrix Size: ${size}×${size}"
     echo ""
-    
-    export OMP_PLACES=cores
-    export OMP_PROC_BIND=close
     
     # Sequential
     echo "Sequential:"

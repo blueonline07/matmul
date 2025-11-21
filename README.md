@@ -1,6 +1,6 @@
-# Matrix Multiplication Project
+# Matrix Multiplication Benchmarks
 
-High-performance matrix multiplication implementations using various algorithms and parallelization techniques.
+High-performance matrix multiplication using various algorithms and parallelization techniques.
 
 ## Quick Start
 
@@ -8,78 +8,76 @@ High-performance matrix multiplication implementations using various algorithms 
 # Build
 make clean && make
 
-# Run correctness tests
+# Run tests
 ./bin/correctness
 
-# Run performance benchmarks
+# Benchmark
+./scripts/benchmark.sh quick 2048
+```
+
+## Implementations
+
+| Algorithm | Status | Description |
+|-----------|--------|-------------|
+| **Naive** | ✅ | Cache-optimized (ikj ordering) |
+| **Strassen** | ✅ | Divide-and-conquer O(n^2.807) |
+| **OpenMP** | ✅ | Shared-memory parallelism |
+| **StrassenOpenMP** | ✅ | Parallel Strassen with OpenMP tasks |
+| **MPI** | ⚠️ | Placeholder |
+| **Hybrid** | ⚠️ | Placeholder |
+
+## Benchmarking
+
+### Quick tests
+```bash
+# Naive vs OpenMP
+./scripts/benchmark.sh quick 2048
+
+# All implementations
+./scripts/benchmark.sh all 512 1024 2048 4096
+
+# Strong scaling
+./scripts/benchmark.sh scaling 4096
+
+# NUMA-optimized
+./scripts/benchmark.sh numa 4096
+```
+
+### Direct method
+```bash
 export OMP_NUM_THREADS=8
 ./bin/performance 512 1024 2048 4096
 ```
 
-## Implemented Algorithms
+## For Your System
 
-1. **Naive** ✅ - Optimized ikj loop ordering (cache-efficient)
-2. **Strassen** ✅ - Divide-and-conquer O(n^2.807)
-3. **OpenMP** ✅ - Shared-memory parallelism
-4. **MPI** ⚠️ - Placeholder (see `src/multiply_mpi.cpp`)
-5. **Hybrid MPI+OpenMP** ⚠️ - Placeholder
+Your system: **8 cores (2 NUMA nodes), 15GB RAM**
 
-## Building
-
+Recommended configuration:
 ```bash
-make                    # Build all
-make performance        # Build performance test only
-make clean              # Clean build artifacts
-```
+# Best: Hybrid 2 MPI × 4 OpenMP
+export OMP_NUM_THREADS=4
+mpirun -np 2 --bind-to socket ./bin/performance 4096
 
-## Running Tests
-
-```bash
-# Correctness tests
-./bin/correctness
-
-# Performance benchmarks
-./bin/performance [size1] [size2] ...  # Custom sizes
-./bin/performance                      # Default sizes
-
-# With MPI
-mpirun -np 4 ./bin/performance 4096
-```
-
-## Benchmarking on Supercomputer
-
-See **QUICK_START_SUPERCOMPUTER.md** for detailed instructions.
-
-Quick commands:
-```bash
-# Load modules
-module load gcc openmpi
-
-# Build
-make clean && make
-
-# Run benchmarks
+# Or: Full OpenMP
 export OMP_NUM_THREADS=8
-./bin/performance 512 1024 2048 4096
-
-# Or use scripts
-chmod +x scripts/*.sh
-./scripts/benchmark_strong_scaling.sh 4096
+./bin/performance 4096
 ```
 
-## Project Structure
+Safe matrix sizes: **512, 1024, 2048, 4096**  
+Maximum safe: **~8192×8192**
 
-```
-matmul/
-├── include/          # Header files
-├── src/              # Implementation files
-├── tests/            # Test suites
-├── scripts/          # Benchmark scripts
-└── bin/              # Compiled executables (created by make)
-```
+## Files
 
-## Documentation
+- `scripts/benchmark.sh` - Main benchmark script
+- `CONFIGURATION_ANALYSIS.md` - System specs and tuning
+- `scripts/README.md` - Script documentation
 
-- **QUICK_START_SUPERCOMPUTER.md** - How to run on supercomputers
-- **CONFIGURATION_ANALYSIS.md** - System-specific analysis
-- **scripts/README.md** - Benchmark script documentation
+## Performance Expectations (4096×4096)
+
+| Implementation | Time | GFLOPS | Speedup |
+|----------------|------|--------|---------|
+| Naive | ~2000 ms | ~1.0 | 1.0× |
+| Strassen | ~1500 ms | ~1.4 | 1.3× |
+| OpenMP | ~400 ms | ~5.0 | 5.0× |
+| StrassenOpenMP | ~350 ms | ~5.7 | 5.7× |

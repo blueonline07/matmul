@@ -4,6 +4,7 @@
 #include <functional>
 #include <vector>
 #include <string>
+#include <mpi.h>
 
 using namespace std;
 
@@ -272,8 +273,11 @@ void test_all_implementations_consistent()
 // Main Test Runner
 // ============================================================================
 
-int main()
+int main(int argc, char** argv)
 {
+    // Initialize MPI
+    MPI_Init(&argc, &argv);
+    
     cout << endl;
     cout << "╔════════════════════════════════════════════════════════════╗" << endl;
     cout << "║        Matrix Multiplication - TDD Test Suite              ║" << endl;
@@ -304,5 +308,8 @@ int main()
         cout << "Implement missing features to make tests pass." << endl;
     }
 
+    // Finalize MPI
+    MPI_Finalize();
+    
     return (passed_tests == total_tests) ? 0 : 1;
 }
