@@ -1,62 +1,88 @@
 # Benchmarking Scripts
 
+Simple, clean interface for running benchmarks.
+
 ## Quick Start
 
 ```bash
+# Make scripts executable
 chmod +x scripts/*.sh
+
+# Build first
 make clean && make
-./scripts/benchmark_strong_scaling.sh 4096
+
+# Run benchmarks
+./scripts/benchmark.sh quick 2048
 ```
 
-## Available Scripts
+## Main Script: `benchmark.sh`
 
-### `benchmark_strong_scaling.sh`
-Strong scaling: fixed size, varying parallelism
+Single entry point for all benchmarks.
+
+### Commands
+
+#### `all [sizes...]` - Test all implementations
 ```bash
-./scripts/benchmark_strong_scaling.sh 4096
+./scripts/benchmark.sh all 512 1024 2048 4096
+./scripts/benchmark.sh all  # Uses defaults: 512 1024 2048 4096
 ```
-Tests: OpenMP (1-64 threads), MPI (1-64 processes), Hybrid
+Tests: Naive, Strassen, OpenMP, StrassenOpenMP across multiple sizes
 
-### `benchmark_weak_scaling.sh`
-Weak scaling: size grows with parallelism
+#### `scaling [size]` - Strong scaling test
 ```bash
-./scripts/benchmark_weak_scaling.sh 2048
+./scripts/benchmark.sh scaling 4096
+./scripts/benchmark.sh scaling  # Default: 4096
 ```
-Tests: MPI and Hybrid with growing problem sizes
+Tests: OpenMP (1, 2, 4, 8 threads) and MPI (1, 2, 4, 8 processes)
 
-### `benchmark_all_implementations.sh`
-Comprehensive test of all algorithms
+#### `numa [size]` - NUMA-optimized test
 ```bash
-./scripts/benchmark_all_implementations.sh 1024 2048 4096
+./scripts/benchmark.sh numa 4096
+./scripts/benchmark.sh numa  # Default: 4096
 ```
+Tests: Sequential, OpenMP, Hybrid (for 2-socket systems)
 
-### `benchmark_numa_optimized.sh`
-NUMA-aware benchmarks (for 2-socket systems)
+#### `quick [size]` - Quick Naive vs OpenMP
 ```bash
-./scripts/benchmark_numa_optimized.sh 4096
+./scripts/benchmark.sh quick 2048
+./scripts/benchmark.sh quick  # Default: 2048
 ```
+Fast comparison of Naive and OpenMP implementations
 
-### `benchmark_slurm.sh`
-Submit as SLURM job
+## Job Scheduler: `benchmark_slurm.sh`
+
+Submit as SLURM job:
 ```bash
+# Edit script first to match your cluster
+nano scripts/benchmark_slurm.sh
+
+# Submit
 sbatch scripts/benchmark_slurm.sh
+
+# Check status
+squeue -u $USER
 ```
 
-### `benchmark_pbs.sh`
-Submit as PBS job
+## Examples
+
 ```bash
-qsub scripts/benchmark_pbs.sh
+# Quick test
+./scripts/benchmark.sh quick
+
+# Full benchmark suite
+./scripts/benchmark.sh all 1024 2048 4096
+
+# Scaling analysis
+./scripts/benchmark.sh scaling 4096
+
+# NUMA test
+./scripts/benchmark.sh numa 4096
 ```
 
-### `analyze_results.sh`
-Extract metrics from results
+## Direct Usage
+
+You can also use the binary directly:
 ```bash
-./scripts/analyze_results.sh results/
+export OMP_NUM_THREADS=8
+./bin/performance 512 1024 2048 4096
 ```
-
-## Output
-
-All results saved in `results/` directory:
-- `results/strong_scaling_<size>/`
-- `results/weak_scaling/`
-- `results/comprehensive/`

@@ -23,7 +23,22 @@ export OMP_PROC_BIND=close
 
 ## 📊 Benchmarking Naive vs OpenMP
 
-### Method 1: Direct (Simplest)
+### Using Scripts (Recommended)
+```bash
+# Quick test: Naive vs OpenMP
+./scripts/benchmark.sh quick 2048
+
+# All implementations
+./scripts/benchmark.sh all 512 1024 2048 4096
+
+# Strong scaling
+./scripts/benchmark.sh scaling 4096
+
+# NUMA-optimized
+./scripts/benchmark.sh numa 4096
+```
+
+### Direct Method
 ```bash
 export OMP_NUM_THREADS=8
 export OMP_PLACES=cores
@@ -31,18 +46,6 @@ export OMP_PROC_BIND=close
 
 # Run and look for Naive/OpenMP rows
 ./bin/performance 512 1024 2048 4096
-```
-
-### Method 2: Using Scripts
-```bash
-# Strong scaling (varying thread counts)
-./scripts/benchmark_strong_scaling.sh 4096
-
-# NUMA-optimized (for 2-socket systems)
-./scripts/benchmark_numa_optimized.sh 4096
-
-# All implementations
-./scripts/benchmark_all_implementations.sh
 ```
 
 ## 📋 Essential Commands
@@ -66,12 +69,9 @@ mpirun -np 2 --bind-to socket ./bin/performance 4096
 
 ## 📁 Results
 
-All results saved in `results/` directory:
-```
-results/
-├── strong_scaling_4096/
-├── weak_scaling/
-└── comprehensive/
+Results are displayed directly in the terminal. For saved output, redirect:
+```bash
+./scripts/benchmark.sh all 1024 2048 > results.txt
 ```
 
 ## 🐛 Troubleshooting
