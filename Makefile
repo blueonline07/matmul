@@ -38,7 +38,7 @@ CXXFLAGS += $(OPTFLAGS)
 LDFLAGS = 
 
 # Object files
-MATRIX_OBJS = obj/matrix.o obj/multiply_naive.o obj/multiply_openmp.o obj/multiply_mpi.o obj/multiply_strassen.o
+MATRIX_OBJS = obj/matrix.o obj/multiply_naive.o obj/multiply_openmp.o obj/multiply_mpi.o obj/multiply_strassen.o obj/multiply_hybrid.o
 
 # Default target: build both test executables
 all: correctness performance
@@ -64,6 +64,11 @@ obj/multiply_openmp.o: src/multiply_openmp.cpp
 obj/multiply_mpi.o: src/multiply_mpi.cpp
 	@mkdir -p obj
 	$(MPICXX) $(CXXFLAGS) -c src/multiply_mpi.cpp -o obj/multiply_mpi.o
+
+# NEW RULE FOR HYBRID (MPI + OpenMP)
+obj/multiply_hybrid.o: src/multiply_hybrid.cpp
+	@mkdir -p obj
+	$(MPICXX) $(CXXFLAGS) -fopenmp -c src/multiply_hybrid.cpp -o obj/multiply_hybrid.o
 
 correctness: $(MATRIX_OBJS)
 	@mkdir -p bin
