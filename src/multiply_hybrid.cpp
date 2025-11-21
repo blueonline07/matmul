@@ -1,5 +1,5 @@
 #include "matrix.h"
-#include <openmp.h>
+#include <omp.h>
 #include <mpi.h>
 
 /**

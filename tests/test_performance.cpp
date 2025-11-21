@@ -6,7 +6,6 @@
 #include <string>
 #include <algorithm>
 #include <cstdlib>
-#include <mpi.h>
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -133,9 +132,6 @@ void print_summary()
 
 int main(int argc, char* argv[])
 {
-    // Initialize MPI
-    MPI_Init(&argc, &argv);
-    
     cout << "\n╔══════════════════════════════════════════════════════════════════════╗" << endl;
     cout << "║         Matrix Multiplication - Performance Benchmark Suite          ║" << endl;
     cout << "╚══════════════════════════════════════════════════════════════════════╝" << endl;
@@ -164,7 +160,7 @@ int main(int argc, char* argv[])
         if (sizes.empty())
         {
             cerr << "Error: No valid sizes provided. Using defaults." << endl;
-            sizes = {100, 200, 500, 1000, 2000};
+            sizes = {100, 200, 500, 1000};
         }
     }
     else
@@ -172,7 +168,7 @@ int main(int argc, char* argv[])
         // Default sizes for development testing
         // For production benchmarks, you may want to go up to 2048 or 4096
         // Note: 10000×10000 requires ~800MB per matrix and takes extremely long
-        sizes = {100, 200, 500, 1000, 2000};
+        sizes = {100, 200, 500, 1000};
     }
 
     cout << "\nTest configuration:" << endl;
@@ -191,28 +187,12 @@ int main(int argc, char* argv[])
     omp_threads = omp_get_max_threads();
     #endif
     
-    // Check if running with MPI
-    int mpi_size = 1;
-    MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
-    
-    if (mpi_size > 1)
-    {
-        cout << "  MPI: " << mpi_size << " processes" << endl;
-    }
     if (omp_threads > 1)
     {
         cout << "  OpenMP: " << omp_threads << " threads" << endl;
     }
-    if (mpi_size > 1 && omp_threads > 1)
-    {
-        cout << "  Total parallelism: " << (mpi_size * omp_threads) << " (Hybrid mode)" << endl;
-    }
     
     cout << "  Implementations: Naive, Strassen, OpenMP, StrassenOpenMP" << endl;
-    if (mpi_size > 1)
-    {
-        cout << "  Note: Running with MPI - MPI variants will be tested" << endl;
-    }
     cout << "\n" << string(74, '-') << endl;
 
     // Run benchmarks for each size
@@ -236,21 +216,8 @@ int main(int argc, char* argv[])
         // OpenMP parallel
         benchmark_implementation("OpenMP", Matrix::multiplyOpenMP, size, baseline_time);
 
-        // Strassen with OpenMP (placeholder - falls back to sequential Strassen)
+        // Strassen with OpenMP
         benchmark_implementation("StrassenOpenMP", Matrix::multiplyStrassenOpenMP, size, baseline_time);
-
-        // MPI and Hybrid variants - test if running with MPI
-        // Check if compiled with MPI and running with multiple processes
-        if (mpi_size > 1)
-        {
-            benchmark_implementation("MPI", Matrix::multiplyMPI, size, baseline_time);
-            benchmark_implementation("StrassenMPI", Matrix::multiplyStrassenMPI, size, baseline_time);
-            if (omp_threads > 1)
-            {
-                benchmark_implementation("Hybrid", Matrix::multiplyHybrid, size, baseline_time);
-                benchmark_implementation("StrassenHybrid", Matrix::multiplyStrassenHybrid, size, baseline_time);
-            }
-        }
     }
 
     // Print comprehensive summary
@@ -261,10 +228,7 @@ int main(int argc, char* argv[])
     cout << "  - GFLOPS = (2×n³) / (time in seconds × 10⁹)" << endl;
     cout << "  - Speedup is relative to optimized naive implementation" << endl;
     cout << "  - Results may vary based on system load and thermal throttling" << endl;
-    cout << "  - For MPI tests, run with: mpirun -np <processes> ./bin/performance" << endl;
-
-    // Finalize MPI
-    MPI_Finalize();
+    cout << "  - For MPI tests, run: make test_mpi_only" << endl;
     
     return 0;
 }

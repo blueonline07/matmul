@@ -4,31 +4,24 @@
 #include <functional>
 #include <vector>
 #include <string>
+#include <mpi.h>
 
 using namespace std;
 
 /**
- * Correctness Test Suite for Matrix Multiplication
+ * MPI/Hybrid Correctness Test Suite
  * 
- * Test-Driven Development (TDD) approach:
- * - Each implementation must pass identical test cases
- * - Tests cover edge cases, special matrices, and general correctness
- * - Cross-implementation consistency verification
- * 
- * Test categories:
- * 1. Basic operations (small matrices with known results)
- * 2. Special matrices (identity, zero)
- * 3. Non-square matrices (rectangular)
- * 4. Mathematical properties (associativity)
- * 5. Cross-implementation consistency
- *
- * All implementations should produce numerically identical results
- * within floating-point tolerance (1e-9 for most cases).
+ * Tests only MPI and Hybrid implementations:
+ * - MPI (distributed memory parallelism)
+ * - StrassenMPI
+ * - Hybrid (MPI + OpenMP)
+ * - StrassenHybrid (MPI + OpenMP with Strassen)
  */
 
 // Test result tracking
 int total_tests = 0;
 int passed_tests = 0;
+int mpi_rank = 0;
 
 void test_result(const string &test_name, bool passed)
 {
@@ -36,11 +29,15 @@ void test_result(const string &test_name, bool passed)
     if (passed)
     {
         passed_tests++;
-        cout << "[PASS] " << test_name << endl;
+        if (mpi_rank == 0) {
+            cout << "[PASS] " << test_name << endl;
+        }
     }
     else
     {
-        cout << "[FAIL] " << test_name << endl;
+        if (mpi_rank == 0) {
+            cout << "[FAIL] " << test_name << endl;
+        }
     }
 }
 
@@ -71,18 +68,18 @@ struct Implementation
 {
     string name;
     MultiplyFunc func;
-    double tolerance; // Some algorithms may have slightly different numerical precision
+    double tolerance;
 };
 
-// List of all implementations to test (non-MPI only)
+// List of MPI/Hybrid implementations to test
 vector<Implementation> implementations = {
-    {"Naive", Matrix::multiplyNaive, 1e-9},
-    {"Strassen", Matrix::multiplyStrassen, 1e-9},
-    {"OpenMP", Matrix::multiplyOpenMP, 1e-9},
-    {"StrassenOpenMP", Matrix::multiplyStrassenOpenMP, 1e-9}};
+    {"MPI", Matrix::multiplyMPI, 1e-9},
+    {"StrassenMPI", Matrix::multiplyStrassenMPI, 1e-9},
+    {"Hybrid", Matrix::multiplyHybrid, 1e-9},
+    {"StrassenHybrid", Matrix::multiplyStrassenHybrid, 1e-9}};
 
 // ============================================================================
-// Common Test Cases (run against all implementations)
+// Common Test Cases
 // ============================================================================
 
 void test_2x2_multiplication(const Implementation &impl)
@@ -178,14 +175,11 @@ void test_associativity(const Implementation &impl)
     Matrix ABC2 = impl.func(A, BC);
 
     test_result(impl.name + ": Associativity (A*B)*C = A*(B*C)",
-                matrices_equal(ABC1, ABC2, impl.tolerance * 10)); // Slightly higher tolerance for accumulated error
+                matrices_equal(ABC1, ABC2, impl.tolerance * 10));
 }
 
 void test_correctness_vs_naive(const Implementation &impl)
 {
-    if (impl.name == "Naive")
-        return; // Skip for naive itself
-
     Matrix A(20, 20);
     Matrix B(20, 20);
     A.initRandom(42);
@@ -204,7 +198,9 @@ void test_correctness_vs_naive(const Implementation &impl)
 
 void run_test_suite(const Implementation &impl)
 {
-    cout << "\n--- Testing: " << impl.name << " ---" << endl;
+    if (mpi_rank == 0) {
+        cout << "\n--- Testing: " << impl.name << " ---" << endl;
+    }
 
     try
     {
@@ -217,7 +213,9 @@ void run_test_suite(const Implementation &impl)
     }
     catch (const exception &e)
     {
-        cout << "[ERROR] " << impl.name << " threw exception: " << e.what() << endl;
+        if (mpi_rank == 0) {
+            cout << "[ERROR] " << impl.name << " threw exception: " << e.what() << endl;
+        }
     }
 }
 
@@ -227,7 +225,9 @@ void run_test_suite(const Implementation &impl)
 
 void test_all_implementations_consistent()
 {
-    cout << "\n--- Cross-Implementation Consistency ---" << endl;
+    if (mpi_rank == 0) {
+        cout << "\n--- Cross-Implementation Consistency ---" << endl;
+    }
 
     Matrix A(32, 32);
     Matrix B(32, 32);
@@ -240,9 +240,6 @@ void test_all_implementations_consistent()
     bool all_consistent = true;
     for (const auto &impl : implementations)
     {
-        if (impl.name == "Naive")
-            continue;
-
         try
         {
             Matrix C_impl = impl.func(A, B);
@@ -251,13 +248,17 @@ void test_all_implementations_consistent()
             if (!matches)
             {
                 all_consistent = false;
-                cout << "[FAIL] " << impl.name << " does not match Naive" << endl;
+                if (mpi_rank == 0) {
+                    cout << "[FAIL] " << impl.name << " does not match Naive" << endl;
+                }
             }
         }
         catch (const exception &e)
         {
             all_consistent = false;
-            cout << "[ERROR] " << impl.name << " threw exception: " << e.what() << endl;
+            if (mpi_rank == 0) {
+                cout << "[ERROR] " << impl.name << " threw exception: " << e.what() << endl;
+            }
         }
     }
 
@@ -268,15 +269,23 @@ void test_all_implementations_consistent()
 // Main Test Runner
 // ============================================================================
 
-int main()
+int main(int argc, char** argv)
 {
-    cout << endl;
-    cout << "╔════════════════════════════════════════════════════════════╗" << endl;
-    cout << "║        Matrix Multiplication - TDD Test Suite              ║" << endl;
-    cout << "╚════════════════════════════════════════════════════════════╝\n"
-         << endl;
+    // Initialize MPI
+    MPI_Init(&argc, &argv);
+    MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
+    
+    int mpi_size = 0;
+    MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
+    
+    if (mpi_rank == 0) {
+        cout << endl;
+        cout << "╔════════════════════════════════════════════════════════════╗" << endl;
+        cout << "║        Matrix Multiplication - TDD Test Suite              ║" << endl;
+        cout << "╚════════════════════════════════════════════════════════════╝\n" << endl;
+    }
 
-    // Run the same test suite for each implementation
+    // Run the test suite for each MPI/Hybrid implementation
     for (const auto &impl : implementations)
     {
         run_test_suite(impl);
@@ -285,20 +294,24 @@ int main()
     // Cross-implementation consistency check
     test_all_implementations_consistent();
 
-    cout << "\n"
-         << string(60, '=') << endl;
-    cout << "RESULTS: " << passed_tests << "/" << total_tests << " tests passed" << endl;
-    cout << string(60, '=') << endl;
+    if (mpi_rank == 0) {
+        cout << "\n" << string(60, '=') << endl;
+        cout << "RESULTS: " << passed_tests << "/" << total_tests << " tests passed" << endl;
+        cout << string(60, '=') << endl;
 
-    if (passed_tests == total_tests)
-    {
-        cout << "\n✓ All tests PASSED!" << endl;
-    }
-    else
-    {
-        cout << "\n✗ " << (total_tests - passed_tests) << " test(s) FAILED" << endl;
-        cout << "Implement missing features to make tests pass." << endl;
+        if (passed_tests == total_tests)
+        {
+            cout << "\n✓ All tests PASSED!" << endl;
+        }
+        else
+        {
+            cout << "\n✗ " << (total_tests - passed_tests) << " test(s) FAILED" << endl;
+        }
     }
 
+    // Finalize MPI
+    MPI_Finalize();
+    
     return (passed_tests == total_tests) ? 0 : 1;
 }
+
