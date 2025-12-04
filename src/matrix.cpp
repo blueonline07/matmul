@@ -358,13 +358,7 @@ int Matrix::nextPowerOf2(int n)
     return power;
 }
 
-double Matrix::gflops(int m, int n, int k, double timeSeconds)
-{
-    // Matrix multiplication: m×k * k×n = m×n
-    // Operations: 2*m*n*k (multiply + add for each element)
-    double flops = 2.0 * m * n * k;
-    return flops / (timeSeconds * 1e9);
-}
+
 
 /* ============================================================================
  * NON-MEMBER FUNCTIONS

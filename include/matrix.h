@@ -271,10 +271,7 @@ public:
      */
     static int nextPowerOf2(int n);
 
-    /**
-     * Calculate GFLOPS for matrix multiplication
-     */
-    static double gflops(int m, int n, int k, double timeSeconds);
+
 };
 
 /**

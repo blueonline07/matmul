@@ -1,22 +1,3 @@
-# Makefile for High-Performance Matrix Multiplication Project
-#
-# Compilers:
-#   - CXX: Standard C++ compiler (GCC 15 with C++17 support)
-#   - MPICXX: MPI C++ wrapper compiler (wraps CXX with MPI flags)
-#
-# Optimization flags:
-#   -O3: Aggressive optimization (inlining, vectorization, loop unrolling)
-#   -march=native: Optimize for current CPU architecture (enables AVX/AVX2/AVX-512)
-#   -mtune=native: Fine-tune for current CPU
-#   -ffast-math: Fast floating-point math (relaxes IEEE 754 for speed)
-#   -funroll-loops: Aggressive loop unrolling
-#   -flto: Link-time optimization across compilation units
-#
-# Warning flags:
-#   -Wall: Enable most warnings
-#   -Wextra: Additional warnings
-#   -Wpedantic: Strict ISO C++ compliance warnings
-
 CXX = g++-15
 MPICXX = mpic++
 
@@ -38,7 +19,9 @@ CXXFLAGS += $(OPTFLAGS)
 LDFLAGS = 
 
 # Object files
-MATRIX_OBJS = obj/matrix.o obj/multiply_naive_sequential.o obj/multiply_openmp.o obj/multiply_mpi.o obj/multiply_strassen_sequential.o obj/multiply_hybrid.o
+MATRIX_OBJS = obj/matrix.o obj/multiply_naive_sequential.o obj/multiply_openmp.o obj/multiply_strassen_sequential.o 
+MPI_OBJS = obj/multiply_mpi.o obj/multiply_hybrid.o
+ALL_OBJS = $(MATRIX_OBJS) $(MPI_OBJS)
 
 # Default target: build both test executables
 all: correctness performance
@@ -73,21 +56,21 @@ obj/multiply_hybrid.o: src/multiply_hybrid.cpp
 	@mkdir -p obj
 	$(MPICXX) $(CXXFLAGS) -fopenmp -c src/multiply_hybrid.cpp -o obj/multiply_hybrid.o
 
-correctness: $(MATRIX_OBJS)
+correctness: tests/test_correctness.cpp tests/test_cases.h $(MATRIX_OBJS)
 	@mkdir -p bin
 	$(MPICXX) $(CXXFLAGS) -fopenmp tests/test_correctness.cpp $(MATRIX_OBJS) -o bin/correctness $(LDFLAGS)
 
-performance: $(MATRIX_OBJS)
+performance: tests/test_performance.cpp tests/benchmark_cases.h $(MATRIX_OBJS)
 	@mkdir -p bin
 	$(MPICXX) $(CXXFLAGS) -fopenmp tests/test_performance.cpp $(MATRIX_OBJS) -o bin/performance $(LDFLAGS)
 
-correctness_mpi: $(MATRIX_OBJS)
+correctness_mpi: tests/test_correctness_mpi.cpp tests/test_cases.h $(ALL_OBJS)
 	@mkdir -p bin
-	$(MPICXX) $(CXXFLAGS) -fopenmp tests/test_correctness_mpi.cpp $(MATRIX_OBJS) -o bin/correctness_mpi $(LDFLAGS)
+	$(MPICXX) $(CXXFLAGS) -fopenmp tests/test_correctness_mpi.cpp $(ALL_OBJS) -o bin/correctness_mpi $(LDFLAGS)
 
-performance_mpi: $(MATRIX_OBJS)
+performance_mpi: tests/test_performance_mpi.cpp tests/benchmark_cases.h $(ALL_OBJS)
 	@mkdir -p bin
-	$(MPICXX) $(CXXFLAGS) -fopenmp tests/test_performance_mpi.cpp $(MATRIX_OBJS) -o bin/performance_mpi $(LDFLAGS)
+	$(MPICXX) $(CXXFLAGS) -fopenmp tests/test_performance_mpi.cpp $(ALL_OBJS) -o bin/performance_mpi $(LDFLAGS)
 
 test: correctness performance
 	@echo "========================================"
