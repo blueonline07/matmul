@@ -21,6 +21,11 @@ private:
     std::vector<double> data_;
 
 public:
+    /**
+     * Error message for incompatible dimensions in multiplication
+     */
+    static constexpr const char *INCOMPATIBLE_DIMENSIONS_MSG = "Incompatible dimensions for multiplication (A.cols != B.rows)";
+
     /* ========================================================================
      * CONSTRUCTORS & DESTRUCTOR
      * ===================================================================== */
@@ -180,27 +185,27 @@ public:
      * MPI-based matrix multiplication
      * Handles MPI internally - same interface as other methods
      */
-    static Matrix multiplyMPI(const Matrix &A, const Matrix &B);
+    static Matrix multiplyMPI(const Matrix &A, const Matrix &B, int size, int rank);
 
     /**
      * MPI-based Strassen's algorithm
      * Distributed Strassen's algorithm using MPI
      * TODO: Implementation pending
      */
-    static Matrix multiplyStrassenMPI(const Matrix &A, const Matrix &B);
+    static Matrix multiplyStrassenMPI(const Matrix &A, const Matrix &B, int size, int rank);
 
     /**
      * Hybrid MPI+OpenMP matrix multiplication
      * Handles MPI internally - same interface as other methods
      */
-    static Matrix multiplyHybrid(const Matrix &A, const Matrix &B);
+    static Matrix multiplyHybrid(const Matrix &A, const Matrix &B, int size, int rank);
 
     /**
      * Hybrid MPI+OpenMP Strassen's algorithm
      * Combines MPI distribution with OpenMP threading for Strassen's algorithm
      * TODO: Implementation pending
      */
-    static Matrix multiplyStrassenHybrid(const Matrix &A, const Matrix &B);
+    static Matrix multiplyStrassenHybrid(const Matrix &A, const Matrix &B, int size, int rank);
 
     /* ========================================================================
      * UTILITY METHODS

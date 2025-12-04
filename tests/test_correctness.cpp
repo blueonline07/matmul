@@ -44,24 +44,7 @@ void test_result(const string &test_name, bool passed)
     }
 }
 
-// Helper function to check if matrices are approximately equal
-bool matrices_equal(const Matrix &A, const Matrix &B, double tolerance = 1e-9)
-{
-    if (A.rows() != B.rows() || A.cols() != B.cols())
-        return false;
 
-    for (int i = 0; i < A.rows(); i++)
-    {
-        for (int j = 0; j < A.cols(); j++)
-        {
-            if (abs(A(i, j) - B(i, j)) > tolerance)
-            {
-                return false;
-            }
-        }
-    }
-    return true;
-}
 
 // Function pointer type for multiplication implementations
 using MultiplyFunc = function<Matrix(const Matrix &, const Matrix &)>;
@@ -117,7 +100,7 @@ void test_identity_multiplication(const Implementation &impl)
     I.initIdentity();
 
     Matrix C = impl.func(A, I);
-    test_result(impl.name + ": A * I = A", matrices_equal(C, A, impl.tolerance));
+    test_result(impl.name + ": A * I = A", C.equals(A, impl.tolerance));
 }
 
 void test_zero_multiplication(const Implementation &impl)
@@ -129,7 +112,7 @@ void test_zero_multiplication(const Implementation &impl)
     Z.initZeros();
 
     Matrix C = impl.func(A, Z);
-    test_result(impl.name + ": A * 0 = 0", matrices_equal(C, Z, impl.tolerance));
+    test_result(impl.name + ": A * 0 = 0", C.equals(Z, impl.tolerance));
 }
 
 void test_non_square_multiplication(const Implementation &impl)
@@ -178,7 +161,7 @@ void test_associativity(const Implementation &impl)
     Matrix ABC2 = impl.func(A, BC);
 
     test_result(impl.name + ": Associativity (A*B)*C = A*(B*C)",
-                matrices_equal(ABC1, ABC2, impl.tolerance * 10)); // Slightly higher tolerance for accumulated error
+                ABC1.equals(ABC2, impl.tolerance * 10)); // Slightly higher tolerance for accumulated error
 }
 
 void test_correctness_vs_naive(const Implementation &impl)
@@ -195,7 +178,7 @@ void test_correctness_vs_naive(const Implementation &impl)
     Matrix C_impl = impl.func(A, B);
 
     test_result(impl.name + ": Correctness vs Naive (20x20)",
-                matrices_equal(C_naive, C_impl, impl.tolerance));
+                C_naive.equals(C_impl, impl.tolerance));
 }
 
 // ============================================================================
@@ -246,7 +229,7 @@ void test_all_implementations_consistent()
         try
         {
             Matrix C_impl = impl.func(A, B);
-            bool matches = matrices_equal(C_reference, C_impl, impl.tolerance);
+            bool matches = C_reference.equals(C_impl, impl.tolerance);
 
             if (!matches)
             {

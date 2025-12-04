@@ -10,7 +10,7 @@ using namespace std;
 
 /**
  * MPI/Hybrid Correctness Test Suite
- * 
+ *
  * Tests only MPI and Hybrid implementations:
  * - MPI (distributed memory parallelism)
  * - StrassenMPI
@@ -29,35 +29,18 @@ void test_result(const string &test_name, bool passed)
     if (passed)
     {
         passed_tests++;
-        if (mpi_rank == 0) {
+        if (mpi_rank == 0)
+        {
             cout << "[PASS] " << test_name << endl;
         }
     }
     else
     {
-        if (mpi_rank == 0) {
+        if (mpi_rank == 0)
+        {
             cout << "[FAIL] " << test_name << endl;
         }
     }
-}
-
-// Helper function to check if matrices are approximately equal
-bool matrices_equal(const Matrix &A, const Matrix &B, double tolerance = 1e-9)
-{
-    if (A.rows() != B.rows() || A.cols() != B.cols())
-        return false;
-
-    for (int i = 0; i < A.rows(); i++)
-    {
-        for (int j = 0; j < A.cols(); j++)
-        {
-            if (abs(A(i, j) - B(i, j)) > tolerance)
-            {
-                return false;
-            }
-        }
-    }
-    return true;
 }
 
 // Function pointer type for multiplication implementations
@@ -114,7 +97,7 @@ void test_identity_multiplication(const Implementation &impl)
     I.initIdentity();
 
     Matrix C = impl.func(A, I);
-    test_result(impl.name + ": A * I = A", matrices_equal(C, A, impl.tolerance));
+    test_result(impl.name + ": A * I = A", C.equals(A, impl.tolerance));
 }
 
 void test_zero_multiplication(const Implementation &impl)
@@ -126,7 +109,7 @@ void test_zero_multiplication(const Implementation &impl)
     Z.initZeros();
 
     Matrix C = impl.func(A, Z);
-    test_result(impl.name + ": A * 0 = 0", matrices_equal(C, Z, impl.tolerance));
+    test_result(impl.name + ": A * 0 = 0", C.equals(Z, impl.tolerance));
 }
 
 void test_non_square_multiplication(const Implementation &impl)
@@ -175,7 +158,7 @@ void test_associativity(const Implementation &impl)
     Matrix ABC2 = impl.func(A, BC);
 
     test_result(impl.name + ": Associativity (A*B)*C = A*(B*C)",
-                matrices_equal(ABC1, ABC2, impl.tolerance * 10));
+                ABC1.equals(ABC2, impl.tolerance));
 }
 
 void test_correctness_vs_naive(const Implementation &impl)
@@ -189,7 +172,7 @@ void test_correctness_vs_naive(const Implementation &impl)
     Matrix C_impl = impl.func(A, B);
 
     test_result(impl.name + ": Correctness vs Naive (20x20)",
-                matrices_equal(C_naive, C_impl, impl.tolerance));
+                C_naive.equals(C_impl, impl.tolerance));
 }
 
 // ============================================================================
@@ -198,7 +181,8 @@ void test_correctness_vs_naive(const Implementation &impl)
 
 void run_test_suite(const Implementation &impl)
 {
-    if (mpi_rank == 0) {
+    if (mpi_rank == 0)
+    {
         cout << "\n--- Testing: " << impl.name << " ---" << endl;
     }
 
@@ -213,7 +197,8 @@ void run_test_suite(const Implementation &impl)
     }
     catch (const exception &e)
     {
-        if (mpi_rank == 0) {
+        if (mpi_rank == 0)
+        {
             cout << "[ERROR] " << impl.name << " threw exception: " << e.what() << endl;
         }
     }
@@ -225,7 +210,8 @@ void run_test_suite(const Implementation &impl)
 
 void test_all_implementations_consistent()
 {
-    if (mpi_rank == 0) {
+    if (mpi_rank == 0)
+    {
         cout << "\n--- Cross-Implementation Consistency ---" << endl;
     }
 
@@ -243,12 +229,13 @@ void test_all_implementations_consistent()
         try
         {
             Matrix C_impl = impl.func(A, B);
-            bool matches = matrices_equal(C_reference, C_impl, impl.tolerance);
+            bool matches = C_reference.equals(C_impl, impl.tolerance);
 
             if (!matches)
             {
                 all_consistent = false;
-                if (mpi_rank == 0) {
+                if (mpi_rank == 0)
+                {
                     cout << "[FAIL] " << impl.name << " does not match Naive" << endl;
                 }
             }
@@ -256,7 +243,8 @@ void test_all_implementations_consistent()
         catch (const exception &e)
         {
             all_consistent = false;
-            if (mpi_rank == 0) {
+            if (mpi_rank == 0)
+            {
                 cout << "[ERROR] " << impl.name << " threw exception: " << e.what() << endl;
             }
         }
@@ -269,20 +257,22 @@ void test_all_implementations_consistent()
 // Main Test Runner
 // ============================================================================
 
-int main(int argc, char** argv)
+int main(int argc, char **argv)
 {
     // Initialize MPI
     MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
-    
+
     int mpi_size = 0;
     MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
-    
-    if (mpi_rank == 0) {
+
+    if (mpi_rank == 0)
+    {
         cout << endl;
         cout << "╔════════════════════════════════════════════════════════════╗" << endl;
         cout << "║        Matrix Multiplication - TDD Test Suite              ║" << endl;
-        cout << "╚════════════════════════════════════════════════════════════╝\n" << endl;
+        cout << "╚════════════════════════════════════════════════════════════╝\n"
+             << endl;
     }
 
     // Run the test suite for each MPI/Hybrid implementation
@@ -294,8 +284,10 @@ int main(int argc, char** argv)
     // Cross-implementation consistency check
     test_all_implementations_consistent();
 
-    if (mpi_rank == 0) {
-        cout << "\n" << string(60, '=') << endl;
+    if (mpi_rank == 0)
+    {
+        cout << "\n"
+             << string(60, '=') << endl;
         cout << "RESULTS: " << passed_tests << "/" << total_tests << " tests passed" << endl;
         cout << string(60, '=') << endl;
 
@@ -311,7 +303,6 @@ int main(int argc, char** argv)
 
     // Finalize MPI
     MPI_Finalize();
-    
+
     return (passed_tests == total_tests) ? 0 : 1;
 }
-
