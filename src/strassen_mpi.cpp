@@ -3,15 +3,14 @@
 
 vector<double> strassen_mpi(const vector<double> &A, vector<double> &B, int m, int n, int p, int rank, int size)
 {
-    // Base case: use standard multiplication for small matrices or non-square
-    if (m <= 64 || m != n || n != p) {
+    if (m <= THRESHOLD || m != n || n != p) {
         return multiply_mpi(A, B, m, n, p, rank, size);
     }
     
     int h = m / 2;
     int hs = h * h;
     
-    // Only rank 0 partitions the matrices
+
     vector<double> A11, A12, A21, A22;
     vector<double> B11, B12, B21, B22;
     
@@ -37,7 +36,6 @@ vector<double> strassen_mpi(const vector<double> &A, vector<double> &B, int m, i
         B11.resize(hs); B12.resize(hs); B21.resize(hs); B22.resize(hs);
     }
     
-    // Broadcast all submatrices to all processes
     MPI_Bcast(A11.data(), hs, MPI_DOUBLE, 0, MPI_COMM_WORLD);
     MPI_Bcast(A12.data(), hs, MPI_DOUBLE, 0, MPI_COMM_WORLD);
     MPI_Bcast(A21.data(), hs, MPI_DOUBLE, 0, MPI_COMM_WORLD);
@@ -47,10 +45,8 @@ vector<double> strassen_mpi(const vector<double> &A, vector<double> &B, int m, i
     MPI_Bcast(B21.data(), hs, MPI_DOUBLE, 0, MPI_COMM_WORLD);
     MPI_Bcast(B22.data(), hs, MPI_DOUBLE, 0, MPI_COMM_WORLD);
     
-    // Distribute computation of M1-M7 across processes
     vector<double> local_M(hs, 0.0);
     
-    // Each process computes assigned M matrices based on rank
     if (rank % 7 == 0) {
         // M1 = (A11 + A22) * (B11 + B22)
         local_M = multiply(add(A11, A22, h), add(B11, B22, h), h, h, h);
@@ -74,11 +70,9 @@ vector<double> strassen_mpi(const vector<double> &A, vector<double> &B, int m, i
         local_M = multiply(sub(A12, A22, h), add(B21, B22, h), h, h, h);
     }
     
-    // Gather all M matrices to rank 0
     vector<double> M1(hs), M2(hs), M3(hs), M4(hs), M5(hs), M6(hs), M7(hs);
     
     if (size >= 7) {
-        // Collect results using point-to-point communication
         if (rank == 0) {
             M1 = local_M;
             MPI_Recv(M2.data(), hs, MPI_DOUBLE, 1, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
@@ -91,7 +85,6 @@ vector<double> strassen_mpi(const vector<double> &A, vector<double> &B, int m, i
             MPI_Send(local_M.data(), hs, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD);
         }
     } else {
-        // Not enough processes, compute sequentially on rank 0
         if (rank == 0) {
             M1 = multiply(add(A11, A22, h), add(B11, B22, h), h, h, h);
             M2 = multiply(add(A21, A22, h), B11, h, h, h);
@@ -103,7 +96,6 @@ vector<double> strassen_mpi(const vector<double> &A, vector<double> &B, int m, i
         }
     }
     
-    // Combine results on rank 0
     vector<double> C(m * m);
     
     if (rank == 0) {
@@ -116,7 +108,6 @@ vector<double> strassen_mpi(const vector<double> &A, vector<double> &B, int m, i
         // C22 = M1 + M3 - M2 + M6
         auto C22 = add(sub(add(M1, M3, h), M2, h), M6, h);
         
-        // Reassemble the result matrix
         for (int i = 0; i < h; i++) {
             for (int j = 0; j < h; j++) {
                 C[i * m + j] = C11[i * h + j];

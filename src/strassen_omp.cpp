@@ -4,7 +4,7 @@
 vector<double> strassen_omp(const vector<double> &A, const vector<double> &B, int m, int n, int p)
 {
 
-    if (m <= 64 || m != n || n != p) {
+    if (m <= THRESHOLD || m != n || n != p) {
         return multiply(A, B, m, n, p);
     }
     
@@ -29,7 +29,6 @@ vector<double> strassen_omp(const vector<double> &A, const vector<double> &B, in
         }
     }
     
-    // Compute 7 products in parallel
     vector<double> M1, M2, M3, M4, M5, M6, M7;
     
     #pragma omp parallel sections

@@ -2,6 +2,8 @@
 #include <iostream>
 #include <chrono>
 #include <experimental/simd>
+#define BS 64
+#define THRESHOLD 1024
 
 using namespace std;
 using namespace std::experimental::parallelism_v2;

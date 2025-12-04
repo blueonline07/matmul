@@ -3,7 +3,6 @@
 vector<double> multiply(const vector<double> &A, const vector<double> &B, int m, int n, int p)
 {
     vector<double> C(m * p, 0.0);
-    const int BS = 64;
 
     using simd_type = simd<double>;
     constexpr int simd_size = simd_type::size();

@@ -2,7 +2,7 @@
 
 vector<double> strassen(const vector<double> &A, const vector<double> &B, int m, int n, int p)
 {
-    if (m <= 64 || m != n || n != p) {
+    if (m <= THRESHOLD || m != n || n != p) {
         return multiply(A, B, m, n, p);
     }
     
