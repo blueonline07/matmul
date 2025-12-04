@@ -4,10 +4,6 @@ obj/
 *.o
 *.out
 
-# Results
-results/*.csv
-results/*.txt
-
 # macOS
 .DS_Store
 
