@@ -1,43 +1,39 @@
-CXX = g++-15
+CXX = mpic++
 CXXFLAGS = -std=c++17 -Wall -Wextra -Iinclude -fopenmp
 
-# Define source and object files
-SRCS = $(wildcard src/*.cpp)
-OBJS = $(patsubst src/%.cpp,obj/%.o,$(SRCS))
+# All source files
+SRC_FILES = $(wildcard src/*.cpp)
+# All test files
+TEST_FILES = $(wildcard tests/*.cpp)
 
-# Define test source files
-TEST_SRCS = $(wildcard tests/*.cpp)
+# Object files for main sources
+OBJ_FILES = $(patsubst src/%.cpp, obj/%.o, $(filter-out src/main.cpp, $(SRC_FILES)))
 
-# Main target
-all:
+# Test executables
+TEST_EXECS = $(patsubst tests/%.cpp, bin/%, $(TEST_FILES))
 
-# Rule to create object files
+# Phony targets
+.PHONY: all run_tests clean
+
+all: $(TEST_EXECS)
+
+# Generic rule to build test executables
+bin/%: tests/%.cpp $(OBJ_FILES)
+	@mkdir -p bin
+	$(CXX) $(CXXFLAGS) -o $@ $< $(filter-out obj/main.o,$(OBJ_FILES))
+
+# Rule to build object files
 obj/%.o: src/%.cpp
 	@mkdir -p obj
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-# Rule to compile and run the strassen test
-test_strassen: $(OBJS) tests/test_strassen.cpp
-	@mkdir -p bin
-	$(CXX) $(CXXFLAGS) -o bin/test_strassen tests/test_strassen.cpp $(OBJS)
-	./bin/test_strassen
-
-# Rule to compile and run the serial test
-test_serial: $(OBJS) tests/test_serial.cpp
-	@mkdir -p bin
-	$(CXX) $(CXXFLAGS) -o bin/test_serial tests/test_serial.cpp $(OBJS)
+test: all
+	@echo "Running tests..."
 	./bin/test_serial
-
-# Rule to compile and run the omp test
-test_omp: $(OBJS) tests/test_omp.cpp
-	@mkdir -p bin
-	$(CXX) $(CXXFLAGS) -o bin/test_omp tests/test_omp.cpp $(OBJS)
 	./bin/test_omp
-
-# Phony target to run all tests
-.PHONY: test
-test: test_strassen test_serial test_omp
-
-# Clean rule
+	./bin/test_strassen
+	mpirun -np 4 ./bin/test_mpi
+	mpirun -np 4 ./bin/test_strassen_mpi
+	@echo "All tests ran!"
 clean:
 	rm -rf obj bin

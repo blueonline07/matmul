@@ -46,7 +46,7 @@ void test_serial_identity() {
 }
 
 void test_serial_large() {
-    int m = 100, n = 50, p = 200;
+    int m = 1000, n = 1000, p = 1000;
     vector<double> A(m * n);
     vector<double> B(n * p);
 
@@ -57,8 +57,10 @@ void test_serial_large() {
     for (int i = 0; i < n * p; i++) {
         B[i] = i;
     }
-
+    auto t0 = chrono::high_resolution_clock::now();
     vector<double> C = multiply(A, B, m, n, p);
+    auto t1 = chrono::high_resolution_clock::now();
+    cout<<chrono::duration_cast<chrono::duration<double>> (t1 - t0).count()<<endl;
 
     vector<double> C_expected(m * p, 0);
     for (int i = 0; i < m; i++) {
