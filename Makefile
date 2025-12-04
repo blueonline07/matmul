@@ -1,5 +1,5 @@
 CXX = mpic++
-CXXFLAGS = -std=c++17 -Wall -Wextra -Iinclude -fopenmp
+CXXFLAGS = -std=c++23 -Wall -Wextra -Iinclude -I /opt/homebrew/include/eigen3 -fopenmp -O3 -ffast-math -funroll-loops -march=armv8-a+simd
 
 # All source files
 SRC_FILES = $(wildcard src/*.cpp)

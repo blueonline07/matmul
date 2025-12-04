@@ -17,8 +17,8 @@ void test_simple_omp() {
     assert(multiply_omp(A, B, m, n, p) == C);
 }
 
-void test_omp_large() {
-    int m = 1000, n = 1000, p = 1000;
+void test_omp_large(int N) {
+    int m = N, n = N, p = N;
     vector<double> A(m * n);
     vector<double> B(n * p);
 
@@ -41,6 +41,6 @@ void test_omp_large() {
 
 int main() {
     test_simple_omp();
-    test_omp_large();
+    test_omp_large(1000);
     return 0;
 }

@@ -5,7 +5,7 @@ int main() {
     test_simple_serial();
     test_serial_zeros();
     test_serial_identity();
-    test_serial_large();
+    test_serial_large(1000);
     return 0;
 }
 
@@ -45,31 +45,37 @@ void test_serial_identity() {
     assert(multiply(A, B, m, n, p) == A);
 }
 
-void test_serial_large() {
-    int m = 1000, n = 1000, p = 1000;
+
+void test_serial_large(int N) {
+    int m = N, n = N, p = N;
     vector<double> A(m * n);
     vector<double> B(n * p);
 
     for (int i = 0; i < m * n; i++) {
-        A[i] = i;
+        A[i] = 1;
     }
 
     for (int i = 0; i < n * p; i++) {
-        B[i] = i;
+        B[i] = 1;
     }
+
     auto t0 = chrono::high_resolution_clock::now();
     vector<double> C = multiply(A, B, m, n, p);
     auto t1 = chrono::high_resolution_clock::now();
-    cout<<chrono::duration_cast<chrono::duration<double>> (t1 - t0).count()<<endl;
+    cout << chrono::duration_cast<chrono::duration<double>>(t1 - t0).count() << " ";
 
-    vector<double> C_expected(m * p, 0);
-    for (int i = 0; i < m; i++) {
-        for (int j = 0; j < p; j++) {
-            for (int k = 0; k < n; k++) {
-                C_expected[i * p + j] += A[i * n + k] * B[k * p + j];
-            }
-        }
-    }
+    Eigen::Map<const Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>>
+        A_eig(A.data(), m, n);
+
+    Eigen::Map<const Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>>
+        B_eig(B.data(), n, p);
+    t0 = chrono::high_resolution_clock::now();
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>
+        C_eig = A_eig * B_eig;
+    vector<double> C_expected(m * p);
+    t1 = chrono::high_resolution_clock::now();
+    cout << chrono::duration_cast<chrono::duration<double>>(t1 - t0).count() << endl;
+    memcpy(C_expected.data(), C_eig.data(), sizeof(double) * m * p);
 
     assert(C == C_expected);
 }

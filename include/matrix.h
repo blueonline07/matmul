@@ -1,8 +1,10 @@
 #include <vector>
 #include <iostream>
 #include <chrono>
+#include <experimental/simd>
 
 using namespace std;
+using namespace std::experimental::parallelism_v2;
 
 vector<double> add(const vector<double> &A, const vector<double> &B, int size);
 vector<double> sub(const vector<double> &A, const vector<double> &B, int size);
