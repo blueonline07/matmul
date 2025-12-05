@@ -5,8 +5,10 @@ CXX_MPI = mpicxx
 
 N ?= 1000
 
-# Flags from user
-EIGEN = /opt/homebrew/include/eigen3
+EIGEN ?= /opt/homebrew/include/eigen3
+OMP_NUM_THREADS ?= 8
+MPI_NUM_PROC ?= 4
+
 INCLUDES = -Iinclude -I$(EIGEN)
 CXXFLAGS = -std=c++23 -Wall -Wextra $(INCLUDES) -O3 -ffast-math -funroll-loops -march=native
 OMPFLAGS = -fopenmp
@@ -93,15 +95,15 @@ run_test_serial: $(BIN_DIR)/test_serial
 
 run_test_omp: $(BIN_DIR)/test_omp
 	@echo "Running OpenMP test (N=$(N))..."
-	./$< $(N)
+	./$< $(N) OMP_NUM_THREADS=$(OMP_NUM_THREADS)
 
 run_test_mpi: $(BIN_DIR)/test_mpi
 	@echo "Running MPI test (N=$(N))..."
-	mpirun -np 4 ./$< $(N)
+	mpirun -np $(MPI_NUM_PROC) ./$< $(N)
 
 run_test_hybrid: $(BIN_DIR)/test_hybrid
 	@echo "Running hybrid test (N=$(N))..."
-	mpirun -np 4 ./$< $(N)
+	mpirun -np $(MPI_NUM_PROC) ./$< $(N) OMP_NUM_THREADS=$(OMP_NUM_THREADS)
 
 test:
 	@$(MAKE) -s run_test_serial N=$(N)
