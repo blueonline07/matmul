@@ -3,6 +3,8 @@ CXX_SERIAL = g++-15
 CXX_OMP = g++-15
 CXX_MPI = mpicxx
 
+N ?= 1000
+
 # Flags from user
 CXXFLAGS = -std=c++23 -Wall -Wextra -Iinclude -I/opt/homebrew/include/eigen3 -O3 -ffast-math -funroll-loops -march=armv8-a+simd
 OMPFLAGS = -fopenmp
@@ -64,8 +66,8 @@ $(OBJ_DIR)/strassen_hybrid.o: src/strassen_hybrid.cpp | $(OBJ_DIR)
 # Dependencies
 TEST_SERIAL_OBJS = $(OBJ_DIR)/multiply.o $(OBJ_DIR)/strassen.o $(OBJ_DIR)/utils.o $(OBJ_DIR)/test_utils.o
 TEST_OMP_OBJS = $(OBJ_DIR)/multiply_openmp.o $(OBJ_DIR)/strassen_omp.o $(OBJ_DIR)/utils.o $(OBJ_DIR)/test_utils.o
-TEST_MPI_OBJS = $(OBJ_DIR)/multiply_mpi.o $(OBJ_DIR)/multiply.o $(OBJ_DIR)/strassen_mpi.o $(OBJ_DIR)/utils.o $(OBJ_DIR)/test_utils.o
-TEST_HYBRID_OBJS = $(OBJ_DIR)/multiply_hybrid.o $(OBJ_DIR)/multiply_openmp.o $(OBJ_DIR)/strassen_hybrid.o $(OBJ_DIR)/utils.o $(OBJ_DIR)/test_utils.o
+TEST_MPI_OBJS = $(OBJ_DIR)/multiply_mpi.o $(OBJ_DIR)/strassen_mpi.o $(OBJ_DIR)/utils.o $(OBJ_DIR)/test_utils.o $(OBJ_DIR)/multiply.o
+TEST_HYBRID_OBJS = $(OBJ_DIR)/multiply_hybrid.o $(OBJ_DIR)/strassen_hybrid.o $(OBJ_DIR)/utils.o $(OBJ_DIR)/test_utils.o $(OBJ_DIR)/multiply_openmp.o
 
 # Linking rules
 $(BIN_DIR)/test_serial: tests/test_serial.cpp $(TEST_SERIAL_OBJS) | $(BIN_DIR)
@@ -84,22 +86,26 @@ $(BIN_DIR)/test_hybrid: tests/test_hybrid.cpp $(TEST_HYBRID_OBJS) | $(BIN_DIR)
 # --- Run and Clean ---
 
 run_test_serial: $(BIN_DIR)/test_serial
-	@echo "Running serial test..."
-	./$<
+	@echo "Running serial test (N=$(N))..."
+	./$< $(N)
 
 run_test_omp: $(BIN_DIR)/test_omp
-	@echo "Running OpenMP test..."
-	./$<
+	@echo "Running OpenMP test (N=$(N))..."
+	./$< $(N)
 
 run_test_mpi: $(BIN_DIR)/test_mpi
-	@echo "Running MPI test..."
-	mpirun -np 4 ./$<
+	@echo "Running MPI test (N=$(N))..."
+	mpirun -np 4 ./$< $(N)
 
 run_test_hybrid: $(BIN_DIR)/test_hybrid
-	@echo "Running hybrid test..."
-	mpirun -np 4 ./$<
+	@echo "Running hybrid test (N=$(N))..."
+	mpirun -np 4 ./$< $(N)
 
-test: run_test_serial run_test_omp run_test_mpi run_test_hybrid
+test:
+	@$(MAKE) -s run_test_serial N=$(N)
+	@$(MAKE) -s run_test_omp N=$(N)
+	@$(MAKE) -s run_test_mpi N=$(N)
+	@$(MAKE) -s run_test_hybrid N=$(N)
 
 clean:
 	rm -rf $(OBJ_DIR) $(BIN_DIR)

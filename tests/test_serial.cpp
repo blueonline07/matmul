@@ -1,11 +1,16 @@
 #include "matrix.h"
 #include "test_cases.h"
+#include <cstdlib>
 
-int main() {
+int main(int argc, char* argv[]) {
     test_serial_simple();
     test_serial_zeros();
     test_serial_identity();
-    test_serial_large(1000);
+    int N = 1000;
+    if (argc > 1) {
+        N = atoi(argv[1]);
+    }
+    test_serial_large(N);
     return 0;
 }
 

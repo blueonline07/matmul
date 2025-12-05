@@ -32,8 +32,14 @@ void test_omp_large(int N) {
     assert(C == libcheck(A, B, m, n, p));
 }
 
-int main() {
+#include <cstdlib>
+
+int main(int argc, char* argv[]) {
     test_omp_simple();
-    test_omp_large(1000);
+    int N = 1000;
+    if (argc > 1) {
+        N = atoi(argv[1]);
+    }
+    test_omp_large(N);
     return 0;
 }

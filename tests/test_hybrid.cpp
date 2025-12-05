@@ -43,13 +43,19 @@ void test_hybrid_large(int N,int rank, int size){
     }  
 }
 
+#include <cstdlib>
+
 int main(int argc, char* argv[]) {
     int rank, size;
     MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
     test_hybrid_simple(rank, size);
-    test_hybrid_large(1000, rank, size);
+    int N = 1000;
+    if (argc > 1) {
+        N = atoi(argv[1]);
+    }
+    test_hybrid_large(N, rank, size);
     MPI_Finalize();
     return 0;
 }
