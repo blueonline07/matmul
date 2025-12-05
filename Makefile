@@ -8,7 +8,7 @@ N ?= 1000
 # Flags from user
 EIGEN = /opt/homebrew/include/eigen3
 INCLUDES = -Iinclude -I$(EIGEN)
-CXXFLAGS = -std=c++23 -Wall -Wextra $(INCLUDES) -O3 -ffast-math -funroll-loops -march=armv8-a+simd
+CXXFLAGS = -std=c++23 -Wall -Wextra $(INCLUDES) -O3 -ffast-math -funroll-loops -march=native
 OMPFLAGS = -fopenmp
 
 # Directories
