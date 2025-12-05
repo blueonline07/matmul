@@ -1,12 +1,28 @@
 #include "matrix.h"
-#include <Eigen/Dense>
 #include <chrono>
 #include <cassert>
 
-void test_simple_serial();
-void test_simple_omp();
+vector<double> libcheck(const vector<double> &, const vector<double> &, int , int, int);
+
+void test_serial_simple();
+void test_omp_simple();
+void test_strassen_simple();
+void test_mpi_simple(int, int);
+
+void test_strassen_hybrid_large(int, int, int);
+void test_strassen_mpi_large(int, int, int);
+void test_strassen_omp_large(int);
+void test_strassen_large(int);
+void test_hybrid_large(int, int, int);
+void test_mpi_large(int, int, int);
 void test_omp_large(int);
-void test_simple_strassen();
+void test_serial_large(int);
+
 void test_serial_zeros();
 void test_serial_identity();
-void test_serial_large(int);
+void test_omp_zeros();
+void test_omp_identity();
+void test_mpi_zeros(int, int);
+void test_mpi_identity(int, int);
+void test_hybrid_zeros(int, int);
+void test_hybrid_identity(int, int);

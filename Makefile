@@ -1,39 +1,105 @@
-CXX = mpic++
-CXXFLAGS = -std=c++23 -Wall -Wextra -Iinclude -I /opt/homebrew/include/eigen3 -fopenmp -O3 -ffast-math -funroll-loops -march=armv8-a+simd
+# Compilers
+CXX_SERIAL = g++-15
+CXX_OMP = g++-15
+CXX_MPI = mpicxx
 
-# All source files
-SRC_FILES = $(wildcard src/*.cpp)
-# All test files
-TEST_FILES = $(wildcard tests/*.cpp)
+# Flags from user
+CXXFLAGS = -std=c++23 -Wall -Wextra -Iinclude -I/opt/homebrew/include/eigen3 -O3 -ffast-math -funroll-loops -march=armv8-a+simd
+OMPFLAGS = -fopenmp
 
-# Object files for main sources
-OBJ_FILES = $(patsubst src/%.cpp, obj/%.o, $(filter-out src/main.cpp, $(SRC_FILES)))
-
-# Test executables
-TEST_EXECS = $(patsubst tests/%.cpp, bin/%, $(TEST_FILES))
+# Directories
+OBJ_DIR = obj
+BIN_DIR = bin
 
 # Phony targets
-.PHONY: all run_tests clean
+.PHONY: all test clean run_test_serial run_test_omp run_test_mpi run_test_hybrid
 
-all: $(TEST_EXECS)
+# Default target
+all: $(BIN_DIR)/test_serial $(BIN_DIR)/test_omp $(BIN_DIR)/test_mpi $(BIN_DIR)/test_hybrid
 
-# Generic rule to build test executables
-bin/%: tests/%.cpp $(OBJ_FILES)
-	@mkdir -p bin
-	$(CXX) $(CXXFLAGS) -o $@ $< $(filter-out obj/main.o,$(OBJ_FILES))
+# Create directories
+$(OBJ_DIR) $(BIN_DIR):
+	mkdir -p $@
 
-# Rule to build object files
-obj/%.o: src/%.cpp
-	@mkdir -p obj
-	$(CXX) $(CXXFLAGS) -c $< -o $@
+# --- Object File Compilation ---
 
-test: all
-	@echo "Running tests..."
-	./bin/test_serial
-	./bin/test_omp
-	./bin/test_strassen
-	mpirun -np 4 ./bin/test_mpi
-	mpirun -np 4 ./bin/test_strassen_mpi
-	@echo "All tests ran!"
+# Serial objects
+$(OBJ_DIR)/multiply.o: src/multiply.cpp | $(OBJ_DIR)
+	$(CXX_SERIAL) $(CXXFLAGS) -c $< -o $@
+
+$(OBJ_DIR)/strassen.o: src/strassen.cpp | $(OBJ_DIR)
+	$(CXX_SERIAL) $(CXXFLAGS) -c $< -o $@
+
+$(OBJ_DIR)/utils.o: src/utils.cpp | $(OBJ_DIR)
+	$(CXX_SERIAL) $(CXXFLAGS) -c $< -o $@
+
+# Test utility object
+$(OBJ_DIR)/test_utils.o: tests/utils.cpp | $(OBJ_DIR)
+	$(CXX_SERIAL) $(CXXFLAGS) -c $< -o $@
+
+# OpenMP objects
+$(OBJ_DIR)/multiply_openmp.o: src/multiply_openmp.cpp | $(OBJ_DIR)
+	$(CXX_OMP) $(CXXFLAGS) $(OMPFLAGS) -c $< -o $@
+
+$(OBJ_DIR)/strassen_omp.o: src/strassen_omp.cpp | $(OBJ_DIR)
+	$(CXX_OMP) $(CXXFLAGS) $(OMPFLAGS) -c $< -o $@
+
+# MPI objects
+$(OBJ_DIR)/multiply_mpi.o: src/multiply_mpi.cpp | $(OBJ_DIR)
+	$(CXX_MPI) $(CXXFLAGS) -c $< -o $@
+
+$(OBJ_DIR)/strassen_mpi.o: src/strassen_mpi.cpp | $(OBJ_DIR)
+	$(CXX_MPI) $(CXXFLAGS) -c $< -o $@
+
+# Hybrid objects
+$(OBJ_DIR)/multiply_hybrid.o: src/multiply_hybrid.cpp | $(OBJ_DIR)
+	$(CXX_MPI) $(CXXFLAGS) $(OMPFLAGS) -c $< -o $@
+
+$(OBJ_DIR)/strassen_hybrid.o: src/strassen_hybrid.cpp | $(OBJ_DIR)
+	$(CXX_MPI) $(CXXFLAGS) $(OMPFLAGS) -c $< -o $@
+
+
+# --- Test Executable Linking ---
+
+# Dependencies
+TEST_SERIAL_OBJS = $(OBJ_DIR)/multiply.o $(OBJ_DIR)/strassen.o $(OBJ_DIR)/utils.o $(OBJ_DIR)/test_utils.o
+TEST_OMP_OBJS = $(OBJ_DIR)/multiply_openmp.o $(OBJ_DIR)/strassen_omp.o $(OBJ_DIR)/utils.o $(OBJ_DIR)/test_utils.o
+TEST_MPI_OBJS = $(OBJ_DIR)/multiply_mpi.o $(OBJ_DIR)/multiply.o $(OBJ_DIR)/strassen_mpi.o $(OBJ_DIR)/utils.o $(OBJ_DIR)/test_utils.o
+TEST_HYBRID_OBJS = $(OBJ_DIR)/multiply_hybrid.o $(OBJ_DIR)/multiply_openmp.o $(OBJ_DIR)/strassen_hybrid.o $(OBJ_DIR)/utils.o $(OBJ_DIR)/test_utils.o
+
+# Linking rules
+$(BIN_DIR)/test_serial: tests/test_serial.cpp $(TEST_SERIAL_OBJS) | $(BIN_DIR)
+	$(CXX_SERIAL) $(CXXFLAGS) -o $@ $< $(TEST_SERIAL_OBJS)
+
+$(BIN_DIR)/test_omp: tests/test_omp.cpp $(TEST_OMP_OBJS) | $(BIN_DIR)
+	$(CXX_OMP) $(CXXFLAGS) $(OMPFLAGS) -o $@ $< $(TEST_OMP_OBJS)
+
+$(BIN_DIR)/test_mpi: tests/test_mpi.cpp $(TEST_MPI_OBJS) | $(BIN_DIR)
+	$(CXX_MPI) $(CXXFLAGS) -o $@ $< $(TEST_MPI_OBJS)
+
+$(BIN_DIR)/test_hybrid: tests/test_hybrid.cpp $(TEST_HYBRID_OBJS) | $(BIN_DIR)
+	$(CXX_MPI) $(CXXFLAGS) $(OMPFLAGS) -o $@ $< $(TEST_HYBRID_OBJS)
+
+
+# --- Run and Clean ---
+
+run_test_serial: $(BIN_DIR)/test_serial
+	@echo "Running serial test..."
+	./$<
+
+run_test_omp: $(BIN_DIR)/test_omp
+	@echo "Running OpenMP test..."
+	./$<
+
+run_test_mpi: $(BIN_DIR)/test_mpi
+	@echo "Running MPI test..."
+	mpirun -np 4 ./$<
+
+run_test_hybrid: $(BIN_DIR)/test_hybrid
+	@echo "Running hybrid test..."
+	mpirun -np 4 ./$<
+
+test: run_test_serial run_test_omp run_test_mpi run_test_hybrid
+
 clean:
-	rm -rf obj bin
+	rm -rf $(OBJ_DIR) $(BIN_DIR)

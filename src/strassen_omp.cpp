@@ -5,7 +5,7 @@ vector<double> strassen_omp(const vector<double> &A, const vector<double> &B, in
 {
 
     if (m <= THRESHOLD || m != n || n != p) {
-        return multiply(A, B, m, n, p);
+        return multiply_omp(A, B, m, n, p);
     }
     
     int h = m / 2;

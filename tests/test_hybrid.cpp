@@ -3,7 +3,7 @@
 #include <mpi.h>
 #include <cassert>
 
-void test_mpi_simple(int rank, int size) {
+void test_hybrid_simple(int rank, int size) {
     int m = 2, n = 1, p = 3;
     vector<double> A = {1, 2};
 
@@ -15,13 +15,13 @@ void test_mpi_simple(int rank, int size) {
         1, 2, 3, 2, 4, 6
     };
 
-    vector<double> result = multiply_mpi(A, B, m, n, p, rank, size);
+    vector<double> result = multiply_hybrid(A, B, m, n, p, rank, size);
 
     if(rank == 0)
         assert(result == C);
 }
 
-void test_mpi_large(int N,int rank, int size){
+void test_hybrid_large(int N,int rank, int size){
     int m = N, n = N, p = N;
     vector<double> A(m * n);
     vector<double> B(n * p);
@@ -34,7 +34,7 @@ void test_mpi_large(int N,int rank, int size){
         B[i] = 1;
     }
     auto t0 = chrono::high_resolution_clock::now();
-    vector<double> C = multiply_mpi(A, B, m, n, p, rank, size);
+    vector<double> C = multiply_hybrid(A, B, m, n, p, rank, size);
     auto t1 = chrono::high_resolution_clock::now();
     
     if(rank == 0){
@@ -48,8 +48,8 @@ int main(int argc, char* argv[]) {
     MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
-    test_mpi_simple(rank, size);
-    test_mpi_large(1000, rank, size);
+    test_hybrid_simple(rank, size);
+    test_hybrid_large(1000, rank, size);
     MPI_Finalize();
     return 0;
 }

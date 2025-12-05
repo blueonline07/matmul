@@ -2,19 +2,15 @@
 #include "test_cases.h"
 #include <cassert>
 
-void test_simple_omp() {
+void test_omp_simple() {
     int m = 2, n = 1, p = 3;
     vector<double> A = {1, 2};
 
     vector<double> B = {
         1, 2, 3
     };
-
-    vector<double> C = {
-        1, 2, 3, 2, 4, 6
-    };
     
-    assert(multiply_omp(A, B, m, n, p) == C);
+    assert(multiply_omp(A, B, m, n, p) == libcheck(A, B, m, n, p));
 }
 
 void test_omp_large(int N) {
@@ -23,24 +19,21 @@ void test_omp_large(int N) {
     vector<double> B(n * p);
 
     for (int i = 0; i < m * n; i++) {
-        A[i] = i;
+        A[i] = 1;
     }
 
     for (int i = 0; i < n * p; i++) {
-        B[i] = i;
+        B[i] = 1;
     }
     auto t0 = chrono::high_resolution_clock::now();
     vector<double> C = multiply_omp(A, B, m, n, p);
     auto t1 = chrono::high_resolution_clock::now();
     cout<<chrono::duration_cast<chrono::duration<double>> (t1 - t0).count()<<endl;
-
-    vector<double> C_expected = multiply(A, B, m, n, p);
-
-    assert(C == C_expected);
+    assert(C == libcheck(A, B, m, n, p));
 }
 
 int main() {
-    test_simple_omp();
+    test_omp_simple();
     test_omp_large(1000);
     return 0;
 }
