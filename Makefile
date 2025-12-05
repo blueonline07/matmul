@@ -6,7 +6,9 @@ CXX_MPI = mpicxx
 N ?= 1000
 
 # Flags from user
-CXXFLAGS = -std=c++23 -Wall -Wextra -Iinclude -I/opt/homebrew/include/eigen3 -O3 -ffast-math -funroll-loops -march=armv8-a+simd
+EIGEN = /opt/homebrew/include/eigen3
+INCLUDES = -Iinclude -I$(EIGEN)
+CXXFLAGS = -std=c++23 -Wall -Wextra $(INCLUDES) -O3 -ffast-math -funroll-loops -march=armv8-a+simd
 OMPFLAGS = -fopenmp
 
 # Directories

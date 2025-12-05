@@ -23,6 +23,10 @@ The project includes the following implementations:
 -   Eigen3 library (for testing)
 
 ## How to Build
+First install Eigen3 lib, and add the lib to Makefile, or export as environment variable
+```bash
+export EIGEN=path-to-lib
+```
 
 To build all the test executables, run:
 
