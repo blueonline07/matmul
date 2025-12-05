@@ -4,7 +4,7 @@
 vector<double> strassen_mpi(const vector<double> &A, vector<double> &B, int m, int n, int p, int rank, int size)
 {
     if (m <= THRESHOLD || m != n || n != p) {
-        return multiply_mpi(A, B, m, n, p, rank, size);
+        return multiply(A, B, m, n, p);
     }
     
     int h = m / 2;
