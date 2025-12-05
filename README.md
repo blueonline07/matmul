@@ -1,83 +1,72 @@
-# Matrix Multiplication Benchmarks
+# Matrix Multiplication
 
-High-performance matrix multiplication using various algorithms and parallelization techniques.
-
-## Quick Start
-
-```bash
-# Build
-make clean && make
-
-# Run tests
-./bin/correctness
-
-# Benchmark
-./scripts/benchmark.sh quick 2048
-```
+This project provides a collection of C++ implementations for matrix multiplication, exploring different parallelization strategies and algorithms.
 
 ## Implementations
 
-| Algorithm | Status | Description |
-|-----------|--------|-------------|
-| **Naive** | ✅ | Cache-optimized (ikj ordering) |
-| **Strassen** | ✅ | Divide-and-conquer O(n^2.807) |
-| **OpenMP** | ✅ | Shared-memory parallelism |
-| **StrassenOpenMP** | ✅ | Parallel Strassen with OpenMP tasks |
-| **MPI** | ⚠️ | Placeholder |
-| **Hybrid** | ⚠️ | Placeholder |
+The project includes the following implementations:
 
-## Benchmarking
+-   **Serial**: A naive matrix multiplication implementation with loop blocking and SIMD optimizations.
+-   **OpenMP**: A parallel version of the naive implementation using OpenMP for shared-memory parallelism.
+-   **MPI**: A parallel version of the naive implementation using MPI for distributed-memory parallelism.
+-   **Hybrid (MPI + OpenMP)**: A hybrid version combining MPI and OpenMP for parallelism.
+-   **Strassen's Algorithm**: A serial implementation of Strassen's algorithm, a recursive method for faster matrix multiplication.
+-   **Strassen's Algorithm with OpenMP**: A parallel version of Strassen's algorithm using OpenMP.
+-   **Strassen's Algorithm with MPI**: A parallel version of Strassen's algorithm using MPI.
+-   **Strassen's Algorithm with Hybrid (MPI + OpenMP)**: A hybrid version of Strassen's algorithm combining MPI and OpenMP.
 
-### Quick tests
+## Prerequisites
+
+-   A C++23 compatible compiler (e.g., g++-15 or newer)
+-   OpenMP
+-   An MPI implementation (e.g., Open MPI)
+-   Eigen3 library (for testing)
+
+## How to Build
+
+To build all the test executables, run:
+
 ```bash
-# Naive vs OpenMP
-./scripts/benchmark.sh quick 2048
-
-# All implementations
-./scripts/benchmark.sh all 512 1024 2048 4096
-
-# Strong scaling
-./scripts/benchmark.sh scaling 4096
-
-# NUMA-optimized
-./scripts/benchmark.sh numa 4096
+make all
 ```
 
-### Direct method
+This will create the following executables in the `bin/` directory:
+
+-   `test_serial`
+-   `test_omp`
+-   `test_mpi`
+-   `test_hybrid`
+
+## How to Run
+
+You can run the tests using the `make` command. The default matrix size is 1000x1000, but you can change it by passing the `N` variable.
+
+-   **Serial:**
+    ```bash
+    make run_test_serial N=2000
+    ```
+
+-   **OpenMP:**
+    ```bash
+    make run_test_omp N=2000
+    ```
+
+-   **MPI:**
+    ```bash
+    make run_test_mpi N=2000
+    ```
+    This will run with 4 MPI processes by default.
+
+-   **Hybrid (MPI + OpenMP):**
+    ```bash
+    make run_test_hybrid N=2000
+    ```
+    This will run with 4 MPI processes by default.
+
+## How to Test
+
+To run all the tests with a specific matrix size:
+
 ```bash
-export OMP_NUM_THREADS=8
-./bin/performance 512 1024 2048 4096
+make test N=500
 ```
-
-## For Your System
-
-Your system: **8 cores (2 NUMA nodes), 15GB RAM**
-
-Recommended configuration:
-```bash
-# Best: Hybrid 2 MPI × 4 OpenMP
-export OMP_NUM_THREADS=4
-mpirun -np 2 --bind-to socket ./bin/performance 4096
-
-# Or: Full OpenMP
-export OMP_NUM_THREADS=8
-./bin/performance 4096
-```
-
-Safe matrix sizes: **512, 1024, 2048, 4096**  
-Maximum safe: **~8192×8192**
-
-## Files
-
-- `scripts/benchmark.sh` - Main benchmark script
-- `CONFIGURATION_ANALYSIS.md` - System specs and tuning
-- `scripts/README.md` - Script documentation
-
-## Performance Expectations (4096×4096)
-
-| Implementation | Time | GFLOPS | Speedup |
-|----------------|------|--------|---------|
-| Naive | ~2000 ms | ~1.0 | 1.0× |
-| Strassen | ~1500 ms | ~1.4 | 1.3× |
-| OpenMP | ~400 ms | ~5.0 | 5.0× |
-| StrassenOpenMP | ~350 ms | ~5.7 | 5.7× |
