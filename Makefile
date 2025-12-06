@@ -89,15 +89,15 @@ $(BIN_DIR)/test_hybrid: tests/test_hybrid.cpp $(TEST_HYBRID_OBJS) | $(BIN_DIR)
 
 # --- Run and Clean ---
 
-run_test_serial: $(BIN_DIR)/test_serial
+test_serial: $(BIN_DIR)/test_serial
 	@echo "Running serial test (N=$(N))..."
 	./$< $(N)
 
-run_test_omp: $(BIN_DIR)/test_omp
+test_omp: $(BIN_DIR)/test_omp
 	@echo "Running OpenMP test (N=$(N))..."
 	./$< $(N) OMP_NUM_THREADS=$(OMP_NUM_THREADS)
 
-run_test_mpi: $(BIN_DIR)/test_mpi
+test_mpi: $(BIN_DIR)/test_mpi
 	@echo "Running MPI test (N=$(N))..."
 ifdef $(HOSTS)
 	mpirun -np $(MPI_NUM_PROC) -hosts $(HOSTS) ./$< $(N)
@@ -105,19 +105,13 @@ else
 	mpirun -np $(MPI_NUM_PROC) ./$< $(N)
 endif
 
-run_test_hybrid: $(BIN_DIR)/test_hybrid
+test_hybrid: $(BIN_DIR)/test_hybrid
 	@echo "Running hybrid test (N=$(N))..."
 ifdef $(HOSTS)
 	mpirun -np $(MPI_NUM_PROC) -hosts $(HOSTS) ./$< $(N) OMP_NUM_THREADS=$(OMP_NUM_THREADS)
 else
 	mpirun -np $(MPI_NUM_PROC) ./$< $(N) OMP_NUM_THREADS=$(OMP_NUM_THREADS)
 endif
-
-test:
-	@$(MAKE) -s run_test_serial N=$(N)
-	@$(MAKE) -s run_test_omp N=$(N)
-	@$(MAKE) -s run_test_mpi N=$(N)
-	@$(MAKE) -s run_test_hybrid N=$(N)
 
 clean:
 	rm -rf $(OBJ_DIR) $(BIN_DIR)
