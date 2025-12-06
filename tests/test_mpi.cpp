@@ -33,6 +33,9 @@ void test_mpi_large(int N,int rank, int size){
     for (int i = 0; i < n * p; i++) {
         B[i] = 1;
     }
+    MPI_Bcast(A.data(), m * n, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+    MPI_Bcast(B.data(), m * n, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+
     auto t0 = chrono::high_resolution_clock::now();
     vector<double> C = multiply_mpi(A, B, m, n, p, rank, size);
     auto t1 = chrono::high_resolution_clock::now();
