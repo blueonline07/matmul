@@ -3,12 +3,16 @@
 
 vector<double> multiply_hybrid(const vector<double> &A, vector<double> &B, int m, int n, int p, int rank, int size){
     int m_padded = ((m + size - 1) / size) * size;
-    vector<double> A_padded(m_padded * n);
-    vector<double> C_padded(m_padded * p);
-    vector<double> C(m * p);
+    vector<double> A_padded;
+    vector<double> C_padded;
+    vector<double> C;
+    B.resize(n * p);
     int rows_per_proc = m_padded / size;
 
     if(rank == 0){
+        A_padded.resize(m_padded * n);
+        C_padded.resize(m_padded * p);
+        C.resize(m * p);
         for(int i = 0; i < m; i++){
             for(int j = 0; j < n; j++){
                 A_padded[i * n + j] = A[i * n + j];
