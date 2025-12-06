@@ -7,7 +7,7 @@ N ?= 1000
 
 EIGEN ?= /opt/homebrew/include/eigen3
 OMP_NUM_THREADS ?= 8
-MPI_NUM_PROC ?= 4
+MPI_NUM_PROC ?= 8
 
 INCLUDES = -Iinclude -I$(EIGEN)
 CXXFLAGS = -std=c++23 -Wall -Wextra $(INCLUDES) -O3 -ffast-math -funroll-loops -march=native
@@ -99,11 +99,19 @@ run_test_omp: $(BIN_DIR)/test_omp
 
 run_test_mpi: $(BIN_DIR)/test_mpi
 	@echo "Running MPI test (N=$(N))..."
-	mpirun -np $(MPI_NUM_PROC) ./$< $(N)
+	ifdef $(HOSTS)
+		mpirun -np $(MPI_NUM_PROC) -hosts $(HOSTS) ./$< $(N)
+	else
+		mpirun -np $(MPI_NUM_PROC) ./$< $(N)
+	endif
 
 run_test_hybrid: $(BIN_DIR)/test_hybrid
 	@echo "Running hybrid test (N=$(N))..."
-	mpirun -np $(MPI_NUM_PROC) ./$< $(N) OMP_NUM_THREADS=$(OMP_NUM_THREADS)
+	ifdef $(HOSTS)
+		mpirun -np $(MPI_NUM_PROC) -hosts $(HOSTS) ./$< $(N) OMP_NUM_THREADS=$(OMP_NUM_THREADS)
+	else
+		mpirun -np $(MPI_NUM_PROC) ./$< $(N) OMP_NUM_THREADS=$(OMP_NUM_THREADS)
+	endif
 
 test:
 	@$(MAKE) -s run_test_serial N=$(N)
