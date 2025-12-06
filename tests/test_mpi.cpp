@@ -23,18 +23,19 @@ void test_mpi_simple(int rank, int size) {
 
 void test_mpi_large(int N,int rank, int size){
     int m = N, n = N, p = N;
-    vector<double> A(m * n);
-    vector<double> B(n * p);
-
-    for (int i = 0; i < m * n; i++) {
-        A[i] = 1;
+    vector<double> A;
+    vector<double> B;
+    if(rank == 0){
+        A.resize(m * n);
+        for (int i = 0; i < m * n; i++) {
+            A[i] = 1;
+        }
+        B.resize(n * p);
+        for (int i = 0; i < n * p; i++) {
+            B[i] = 1;
+        }
     }
-
-    for (int i = 0; i < n * p; i++) {
-        B[i] = 1;
-    }
-    MPI_Bcast(A.data(), m * n, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-    MPI_Bcast(B.data(), m * n, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+    
 
     auto t0 = chrono::high_resolution_clock::now();
     vector<double> C = multiply_mpi(A, B, m, n, p, rank, size);
