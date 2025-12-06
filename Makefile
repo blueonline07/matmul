@@ -99,19 +99,19 @@ run_test_omp: $(BIN_DIR)/test_omp
 
 run_test_mpi: $(BIN_DIR)/test_mpi
 	@echo "Running MPI test (N=$(N))..."
-	ifdef $(HOSTS)
-		mpirun -np $(MPI_NUM_PROC) -hosts $(HOSTS) ./$< $(N)
-	else
-		mpirun -np $(MPI_NUM_PROC) ./$< $(N)
-	endif
+ifdef $(HOSTS)
+	mpirun -np $(MPI_NUM_PROC) -hosts $(HOSTS) ./$< $(N)
+else
+	mpirun -np $(MPI_NUM_PROC) ./$< $(N)
+endif
 
 run_test_hybrid: $(BIN_DIR)/test_hybrid
 	@echo "Running hybrid test (N=$(N))..."
-	ifdef $(HOSTS)
-		mpirun -np $(MPI_NUM_PROC) -hosts $(HOSTS) ./$< $(N) OMP_NUM_THREADS=$(OMP_NUM_THREADS)
-	else
-		mpirun -np $(MPI_NUM_PROC) ./$< $(N) OMP_NUM_THREADS=$(OMP_NUM_THREADS)
-	endif
+ifdef $(HOSTS)
+	mpirun -np $(MPI_NUM_PROC) -hosts $(HOSTS) ./$< $(N) OMP_NUM_THREADS=$(OMP_NUM_THREADS)
+else
+	mpirun -np $(MPI_NUM_PROC) ./$< $(N) OMP_NUM_THREADS=$(OMP_NUM_THREADS)
+endif
 
 test:
 	@$(MAKE) -s run_test_serial N=$(N)
