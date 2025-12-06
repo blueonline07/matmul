@@ -6,6 +6,7 @@ vector<double> multiply_mpi(const vector<double> &A, vector<double> &B, int m, i
     vector<double> A_padded;
     vector<double> C_padded;
     vector<double> C;
+    B.resize(n * p);
     int rows_per_proc = m_padded / size;
 
     if(rank == 0){
