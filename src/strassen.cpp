@@ -26,13 +26,13 @@ vector<double> strassen(const vector<double> &A, const vector<double> &B, int m,
         }
     }
     
-    auto M1 = multiply(add(A11, A22, h), add(B11, B22, h), h, h, h);
-    auto M2 = multiply(add(A21, A22, h), B11, h, h, h);
-    auto M3 = multiply(A11, sub(B12, B22, h), h, h, h);
-    auto M4 = multiply(A22, sub(B21, B11, h), h, h, h);
-    auto M5 = multiply(add(A11, A12, h), B22, h, h, h);
-    auto M6 = multiply(sub(A21, A11, h), add(B11, B12, h), h, h, h);
-    auto M7 = multiply(sub(A12, A22, h), add(B21, B22, h), h, h, h);
+    auto M1 = strassen(add(A11, A22, h), add(B11, B22, h), h, h, h);
+    auto M2 = strassen(add(A21, A22, h), B11, h, h, h);
+    auto M3 = strassen(A11, sub(B12, B22, h), h, h, h);
+    auto M4 = strassen(A22, sub(B21, B11, h), h, h, h);
+    auto M5 = strassen(add(A11, A12, h), B22, h, h, h);
+    auto M6 = strassen(sub(A21, A11, h), add(B11, B12, h), h, h, h);
+    auto M7 = strassen(sub(A12, A22, h), add(B21, B22, h), h, h, h);
     
     auto C11 = add(sub(add(M1, M4, h), M5, h), M7, h);
     auto C12 = add(M3, M5, h);

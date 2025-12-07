@@ -54,11 +54,15 @@ vector<double> strassen_omp(const vector<double> &A, const vector<double> &B, in
         #pragma omp section
         M7 = strassen_omp(sub(A12, A22, h), add(B21, B22, h), h, h, h);
     }
+    vector<double> C11, C12, C21, C22;
+    #pragma omp parallel sections
+    {
+        C11 = add(sub(add(M1, M4, h), M5, h), M7, h);
+        C12 = add(M3, M5, h);
+        C21 = add(M2, M4, h);
+        C22 = add(sub(add(M1, M3, h), M2, h), M6, h);
+    }
     
-    auto C11 = add(sub(add(M1, M4, h), M5, h), M7, h);
-    auto C12 = add(M3, M5, h);
-    auto C21 = add(M2, M4, h);
-    auto C22 = add(sub(add(M1, M3, h), M2, h), M6, h);
     
     vector<double> C(m * m);
     #pragma omp parallel for collapse(2)
