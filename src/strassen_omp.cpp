@@ -57,9 +57,16 @@ vector<double> strassen_omp(const vector<double> &A, const vector<double> &B, in
     vector<double> C11, C12, C21, C22;
     #pragma omp parallel sections
     {
+        #pragma omp section
         C11 = add(sub(add(M1, M4, h), M5, h), M7, h);
+
+        #pragma omp section
         C12 = add(M3, M5, h);
+        
+        #pragma omp section
         C21 = add(M2, M4, h);
+        
+        #pragma omp section
         C22 = add(sub(add(M1, M3, h), M2, h), M6, h);
     }
     
