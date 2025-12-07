@@ -19,8 +19,8 @@ vector<double> multiply_omp(const vector<double> &A, const vector<double> &B, in
 vector<double> strassen(const vector<double> &A, const vector<double> &B, int m, int n, int p);
 vector<double> strassen_omp(const vector<double> &A, const vector<double> &B, int m, int n, int p);
 
-vector<double> multiply_mpi(const vector<double> &A, vector<double> &B, int m, int n, int p, int rank, int size);
+vector<double> multiply_mpi( vector<double> &A, vector<double> &B, int m, int n, int p, int rank, int size);
 vector<double> strassen_mpi(const vector<double> &A, vector<double> &B, int m, int n, int p, int rank, int size);
 
-vector<double> multiply_hybrid(const vector<double> &A, vector<double> &B, int m, int n, int p, int rank, int size);
+vector<double> multiply_hybrid( vector<double> &A, vector<double> &B, int m, int n, int p, int rank, int size);
 vector<double> strassen_hybrid(const vector<double> &A, vector<double> &B, int m, int n, int p, int rank, int size);
