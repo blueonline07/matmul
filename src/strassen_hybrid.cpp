@@ -3,14 +3,8 @@
 
 vector<double> strassen_hybrid(const vector<double> &A, const vector<double> &B, int m, int n, int p, int rank, int size)
 {
-    if (m <= THRESHOLD || m != n || n != p) {
-        return multiply_omp(A, B, m, n, p);
-    }
-    
     int h = m / 2;
     int hs = h * h;
-    
-
     vector<double> A11, A12, A21, A22;
     vector<double> B11, B12, B21, B22;
     
@@ -49,25 +43,25 @@ vector<double> strassen_hybrid(const vector<double> &A, const vector<double> &B,
     
     if (rank % 7 == 0) {
         // M1 = (A11 + A22) * (B11 + B22)
-        local_M = strassen_hybrid(add(A11, A22, h), add(B11, B22, h), h, h, h, rank, size);
+        local_M = multiply_omp(add(A11, A22, h), add(B11, B22, h), h, h, h);
     } else if (rank % 7 == 1) {
         // M2 = (A21 + A22) * B11
-        local_M = strassen_hybrid(add(A21, A22, h), B11, h, h, h, rank, size);
+        local_M = multiply_omp(add(A21, A22, h), B11, h, h, h);
     } else if (rank % 7 == 2) {
         // M3 = A11 * (B12 - B22)
-        local_M = strassen_hybrid(A11, sub(B12, B22, h), h, h, h, rank, size);
+        local_M = multiply_omp(A11, sub(B12, B22, h), h, h, h);
     } else if (rank % 7 == 3) {
         // M4 = A22 * (B21 - B11)
-        local_M = strassen_hybrid(A22, sub(B21, B11, h), h, h, h, rank, size);
+        local_M = multiply_omp(A22, sub(B21, B11, h), h, h, h);
     } else if (rank % 7 == 4) {
         // M5 = (A11 + A12) * B22
-        local_M = strassen_hybrid(add(A11, A12, h), B22, h, h, h, rank, size);
+        local_M = multiply_omp(add(A11, A12, h), B22, h, h, h);
     } else if (rank % 7 == 5) {
         // M6 = (A21 - A11) * (B11 + B12)
-        local_M = strassen_hybrid(sub(A21, A11, h), add(B11, B12, h), h, h, h, rank, size);
+        local_M = multiply_omp(sub(A21, A11, h), add(B11, B12, h), h, h, h);
     } else if (rank % 7 == 6) {
         // M7 = (A12 - A22) * (B21 + B22)
-        local_M = strassen_hybrid(sub(A12, A22, h), add(B21, B22, h), h, h, h, rank, size);
+        local_M = multiply_omp(sub(A12, A22, h), add(B21, B22, h), h, h, h);
     }
     
     vector<double> M1(hs), M2(hs), M3(hs), M4(hs), M5(hs), M6(hs), M7(hs);
@@ -86,13 +80,13 @@ vector<double> strassen_hybrid(const vector<double> &A, const vector<double> &B,
         }
     } else {
         if (rank == 0) {
-            M1 = strassen_hybrid(add(A11, A22, h), add(B11, B22, h), h, h, h, rank, size);
-            M2 = strassen_hybrid(add(A21, A22, h), B11, h, h, h, rank, size);
-            M3 = strassen_hybrid(A11, sub(B12, B22, h), h, h, h, rank, size);
-            M4 = strassen_hybrid(A22, sub(B21, B11, h), h, h, h, rank, size);
-            M5 = strassen_hybrid(add(A11, A12, h), B22, h, h, h, rank, size);
-            M6 = strassen_hybrid(sub(A21, A11, h), add(B11, B12, h), h, h, h, rank, size);
-            M7 = strassen_hybrid(sub(A12, A22, h), add(B21, B22, h), h, h, h, rank, size);
+            M1 = multiply_omp(add(A11, A22, h), add(B11, B22, h), h, h, h);
+            M2 = multiply_omp(add(A21, A22, h), B11, h, h, h);
+            M3 = multiply_omp(A11, sub(B12, B22, h), h, h, h);
+            M4 = multiply_omp(A22, sub(B21, B11, h), h, h, h);
+            M5 = multiply_omp(add(A11, A12, h), B22, h, h, h);
+            M6 = multiply_omp(sub(A21, A11, h), add(B11, B12, h), h, h, h);
+            M7 = multiply_omp(sub(A12, A22, h), add(B21, B22, h), h, h, h);
         }
     }
     
