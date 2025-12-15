@@ -8,8 +8,8 @@
 using namespace std;
 using namespace std::experimental::parallelism_v2;
 
-#ifndef MPI_TAG
-#define MPI_TAG
+#ifndef MPI_TAG_H
+#define MPI_TAG_H
 enum MPITag
 {
     TAG_A11 = 1,
