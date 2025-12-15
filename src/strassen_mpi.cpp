@@ -173,10 +173,17 @@ vector<double> strassen_mpi(const vector<double> &A, const vector<double> &B, in
         local_M = multiply(op1, op2, h, h, h);
     }
 
-    vector<double> M1(hs), M2(hs), M3(hs), M4(hs), M5(hs), M6(hs), M7(hs);
+    vector<double> M1, M2, M3, M4, M5, M6, M7;
 
     if (rank == 0)
     {
+        M1.resize(hs);
+        M2.resize(hs);
+        M3.resize(hs);
+        M4.resize(hs);
+        M5.resize(hs);
+        M6.resize(hs);
+        M7.resize(hs);
         M1 = local_M;
         MPI_Recv(M2.data(), hs, MPI_DOUBLE, 1, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
         MPI_Recv(M3.data(), hs, MPI_DOUBLE, 2, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
@@ -190,10 +197,11 @@ vector<double> strassen_mpi(const vector<double> &A, const vector<double> &B, in
         MPI_Send(local_M.data(), hs, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD);
     }
 
-    vector<double> C(m * m);
+    vector<double> C;
 
     if (rank == 0)
     {
+        C.resize(m * n);
         vector<double> C11, C12, C21, C22;
         vector<double> op1;
         // C11 = M1 + M4 - M5 + M7

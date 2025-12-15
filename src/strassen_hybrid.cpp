@@ -166,68 +166,35 @@ vector<double> strassen_hybrid(const vector<double> &A, const vector<double> &B,
         local_M = multiply_omp(op1, op2, h, h, h);
     }
 
-    vector<double> M1(hs), M2(hs), M3(hs), M4(hs), M5(hs), M6(hs), M7(hs);
-
-    if (size >= 7)
-    {
-        if (rank == 0)
-        {
-            M1 = local_M;
-            MPI_Recv(M2.data(), hs, MPI_DOUBLE, 1, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-            MPI_Recv(M3.data(), hs, MPI_DOUBLE, 2, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-            MPI_Recv(M4.data(), hs, MPI_DOUBLE, 3, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-            MPI_Recv(M5.data(), hs, MPI_DOUBLE, 4, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-            MPI_Recv(M6.data(), hs, MPI_DOUBLE, 5, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-            MPI_Recv(M7.data(), hs, MPI_DOUBLE, 6, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-        }
-        else if (rank >= 1 && rank <= 6)
-        {
-            MPI_Send(local_M.data(), hs, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD);
-        }
-    }
-    else
-    {
-        if (rank == 0)
-        {
-            vector<double> op1, op2;
-
-            // M1 = (A11 + A22) * (B11 + B22)
-            add(A11, A22, op1, h);
-            add(B11, B22, op2, h);
-            M1 = multiply_omp(op1, op2, h, h, h);
-
-            // M2 = (A21 + A22) * B11
-            add(A21, A22, op1, h);
-            M2 = multiply_omp(op1, B11, h, h, h);
-
-            // M3 = A11 * (B12 - B22)
-            sub(B12, B22, op2, h);
-            M3 = multiply_omp(A11, op2, h, h, h);
-
-            // M4 = A22 * (B21 - B11)
-            sub(B21, B11, op2, h);
-            M4 = multiply_omp(A22, op2, h, h, h);
-
-            // M5 = (A11 + A12) * B22
-            add(A11, A12, op1, h);
-            M5 = multiply_omp(op1, B22, h, h, h);
-
-            // M6 = (A21 - A11) * (B11 + B12)
-            sub(A21, A11, op1, h);
-            add(B11, B12, op2, h);
-            M6 = multiply_omp(op1, op2, h, h, h);
-
-            // M7 = (A12 - A22) * (B21 + B22)
-            sub(A12, A22, op1, h);
-            add(B21, B22, op2, h);
-            M7 = multiply_omp(op1, op2, h, h, h);
-        }
-    }
-
-    vector<double> C(m * m);
+    vector<double> M1, M2, M3, M4, M5, M6, M7;
 
     if (rank == 0)
     {
+        M1.resize(hs);
+        M2.resize(hs);
+        M3.resize(hs);
+        M4.resize(hs);
+        M5.resize(hs);
+        M6.resize(hs);
+        M7.resize(hs);
+        M1 = local_M;
+        MPI_Recv(M2.data(), hs, MPI_DOUBLE, 1, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        MPI_Recv(M3.data(), hs, MPI_DOUBLE, 2, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        MPI_Recv(M4.data(), hs, MPI_DOUBLE, 3, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        MPI_Recv(M5.data(), hs, MPI_DOUBLE, 4, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        MPI_Recv(M6.data(), hs, MPI_DOUBLE, 5, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        MPI_Recv(M7.data(), hs, MPI_DOUBLE, 6, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    }
+    else if (rank >= 1 && rank <= 6)
+    {
+        MPI_Send(local_M.data(), hs, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD);
+    }
+
+    vector<double> C;
+
+    if (rank == 0)
+    {
+        C.resize(m * n);
         vector<double> C11, C12, C21, C22;
         vector<double> op1;
         // C11 = M1 + M4 - M5 + M7
