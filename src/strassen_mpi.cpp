@@ -40,7 +40,6 @@ vector<double> strassen_mpi(const vector<double> &A, const vector<double> &B, in
             }
         }
     }
-
     vector<double> local_M(hs, 0.0);
 
     if (rank == 0)
@@ -73,6 +72,14 @@ vector<double> strassen_mpi(const vector<double> &A, const vector<double> &B, in
         vector<double> op1, op2;
         add(A11, A22, op1, h);
         add(B11, B22, op2, h);
+        A11.clear();
+        A11.shrink_to_fit();
+        A22.clear();
+        A22.shrink_to_fit();
+        B11.clear();
+        B11.shrink_to_fit();
+        B22.clear();
+        B22.shrink_to_fit();
         local_M = multiply(op1, op2, h, h, h);
     }
 
@@ -168,60 +175,19 @@ vector<double> strassen_mpi(const vector<double> &A, const vector<double> &B, in
 
     vector<double> M1(hs), M2(hs), M3(hs), M4(hs), M5(hs), M6(hs), M7(hs);
 
-    if (size >= 7)
+    if (rank == 0)
     {
-        if (rank == 0)
-        {
-            M1 = local_M;
-            MPI_Recv(M2.data(), hs, MPI_DOUBLE, 1, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-            MPI_Recv(M3.data(), hs, MPI_DOUBLE, 2, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-            MPI_Recv(M4.data(), hs, MPI_DOUBLE, 3, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-            MPI_Recv(M5.data(), hs, MPI_DOUBLE, 4, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-            MPI_Recv(M6.data(), hs, MPI_DOUBLE, 5, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-            MPI_Recv(M7.data(), hs, MPI_DOUBLE, 6, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-        }
-        else if (rank >= 1 && rank <= 6)
-        {
-            MPI_Send(local_M.data(), hs, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD);
-        }
+        M1 = local_M;
+        MPI_Recv(M2.data(), hs, MPI_DOUBLE, 1, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        MPI_Recv(M3.data(), hs, MPI_DOUBLE, 2, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        MPI_Recv(M4.data(), hs, MPI_DOUBLE, 3, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        MPI_Recv(M5.data(), hs, MPI_DOUBLE, 4, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        MPI_Recv(M6.data(), hs, MPI_DOUBLE, 5, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        MPI_Recv(M7.data(), hs, MPI_DOUBLE, 6, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
     }
-    else
+    else if (rank >= 1 && rank <= 6)
     {
-        if (rank == 0)
-        {
-            vector<double> op1, op2;
-
-            // M1 = (A11 + A22) * (B11 + B22)
-            add(A11, A22, op1, h);
-            add(B11, B22, op2, h);
-            M1 = multiply(op1, op2, h, h, h);
-
-            // M2 = (A21 + A22) * B11
-            add(A21, A22, op1, h);
-            M2 = multiply(op1, B11, h, h, h);
-
-            // M3 = A11 * (B12 - B22)
-            sub(B12, B22, op2, h);
-            M3 = multiply(A11, op2, h, h, h);
-
-            // M4 = A22 * (B21 - B11)
-            sub(B21, B11, op2, h);
-            M4 = multiply(A22, op2, h, h, h);
-
-            // M5 = (A11 + A12) * B22
-            add(A11, A12, op1, h);
-            M5 = multiply(op1, B22, h, h, h);
-
-            // M6 = (A21 - A11) * (B11 + B12)
-            sub(A21, A11, op1, h);
-            add(B11, B12, op2, h);
-            M6 = multiply(op1, op2, h, h, h);
-
-            // M7 = (A12 - A22) * (B21 + B22)
-            sub(A12, A22, op1, h);
-            add(B21, B22, op2, h);
-            M7 = multiply(op1, op2, h, h, h);
-        }
+        MPI_Send(local_M.data(), hs, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD);
     }
 
     vector<double> C(m * m);
