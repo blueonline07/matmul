@@ -16,6 +16,11 @@ enum MPITag
 
 vector<double> strassen_mpi(const vector<double> &A, const vector<double> &B, int m, int n, int p, int rank, int size)
 {
+    int workers = min(size, 7);
+    if (rank >= workers)
+    {
+        return vector<double>();
+    }
     // assume this is a square matrix
     int h = m / 2;
     int hs = h * h;
