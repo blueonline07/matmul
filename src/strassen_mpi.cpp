@@ -1,19 +1,6 @@
 #include "matrix.h"
 #include <mpi.h>
 
-enum MPITag
-{
-    TAG_A11 = 1,
-    TAG_A12 = 2,
-    TAG_A21 = 3,
-    TAG_A22 = 4,
-    TAG_B11 = 5,
-    TAG_B12 = 6,
-    TAG_B21 = 7,
-    TAG_B22 = 8,
-    TAG_RESULT = 100
-};
-
 vector<double> strassen_mpi(const vector<double> &A, const vector<double> &B, int m, int n, int p, int rank, int size)
 {
     int workers = min(size, 7);
@@ -21,7 +8,7 @@ vector<double> strassen_mpi(const vector<double> &A, const vector<double> &B, in
     {
         return vector<double>();
     }
-    // assume this is a square matrix
+
     int h = m / 2;
     int hs = h * h;
     vector<double> A11, A12, A21, A22;
