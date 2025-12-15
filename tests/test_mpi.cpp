@@ -75,7 +75,6 @@ int main(int argc, char *argv[])
         N = atoi(argv[1]);
     }
     test_mpi(N, rank, size);
-    test_strassen_mpi(N, rank, size);
     MPI_Finalize();
     return 0;
 }
