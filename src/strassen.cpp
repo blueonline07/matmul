@@ -61,7 +61,7 @@ vector<double> strassen(const vector<double> &A, const vector<double> &B, int m,
     add(B21, B22, op2, h);
     M7 = multiply(op1, op2, h, h, h);
 
-    vector<double> C11(hs), C12(hs), C21(hs), C22(hs);
+    vector<double> C11, C12, C21, C22;
 
     // C11 = M1 + M4 - M5 + M7
     add(M1, M4, op1, h);

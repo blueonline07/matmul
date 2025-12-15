@@ -189,7 +189,7 @@ vector<double> strassen_mpi(const vector<double> &A, const vector<double> &B, in
     {
         if (rank == 0)
         {
-            vector<double> op1(hs), op2(hs);
+            vector<double> op1, op2;
 
             // M1 = (A11 + A22) * (B11 + B22)
             add(A11, A22, op1, h);
@@ -228,7 +228,7 @@ vector<double> strassen_mpi(const vector<double> &A, const vector<double> &B, in
 
     if (rank == 0)
     {
-        vector<double> C11(hs), C12(hs), C21(hs), C22(hs);
+        vector<double> C11, C12, C21, C22;
         vector<double> op1;
         // C11 = M1 + M4 - M5 + M7
         add(M1, M4, op1, h);
