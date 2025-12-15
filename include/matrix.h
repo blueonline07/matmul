@@ -8,6 +8,8 @@
 using namespace std;
 using namespace std::experimental::parallelism_v2;
 
+#ifndef MPI_TAG
+#define MPI_TAG
 enum MPITag
 {
     TAG_A11 = 1,
@@ -20,6 +22,7 @@ enum MPITag
     TAG_B22 = 8,
     TAG_RESULT = 100
 };
+#endif
 
 vector<double> add(const vector<double> &A, const vector<double> &B, int size);
 vector<double> sub(const vector<double> &A, const vector<double> &B, int size);
