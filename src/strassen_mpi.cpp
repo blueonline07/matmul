@@ -69,9 +69,7 @@ vector<double> strassen_mpi(const vector<double> &A, const vector<double> &B, in
         MPI_Send(A22.data(), hs, MPI_DOUBLE, 6, TAG_A22, MPI_COMM_WORLD);
         MPI_Send(B21.data(), hs, MPI_DOUBLE, 6, TAG_B21, MPI_COMM_WORLD);
         MPI_Send(B22.data(), hs, MPI_DOUBLE, 6, TAG_B22, MPI_COMM_WORLD);
-        vector<double> op1, op2;
-        add(A11, A22, op1, h);
-        add(B11, B22, op2, h);
+        local_M = multiply(add(A11, A22, h), add(B11, B22, h), h, h, h);
         A11.clear();
         A11.shrink_to_fit();
         A22.clear();
@@ -80,7 +78,6 @@ vector<double> strassen_mpi(const vector<double> &A, const vector<double> &B, in
         B11.shrink_to_fit();
         B22.clear();
         B22.shrink_to_fit();
-        local_M = multiply(op1, op2, h, h, h);
     }
 
     else if (rank == 1)
@@ -92,9 +89,7 @@ vector<double> strassen_mpi(const vector<double> &A, const vector<double> &B, in
         MPI_Recv(A21.data(), hs, MPI_DOUBLE, 0, TAG_A21, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
         MPI_Recv(A22.data(), hs, MPI_DOUBLE, 0, TAG_A22, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
         MPI_Recv(B11.data(), hs, MPI_DOUBLE, 0, TAG_B11, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-        vector<double> op1;
-        add(A21, A22, op1, h);
-        local_M = multiply(op1, B11, h, h, h);
+        local_M = multiply(add(A21, A22, h), B11, h, h, h);
     }
     else if (rank == 2)
     {
@@ -106,9 +101,7 @@ vector<double> strassen_mpi(const vector<double> &A, const vector<double> &B, in
         MPI_Recv(B12.data(), hs, MPI_DOUBLE, 0, TAG_B12, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
         MPI_Recv(B22.data(), hs, MPI_DOUBLE, 0, TAG_B22, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
-        vector<double> op;
-        sub(B12, B22, op, h);
-        local_M = multiply(A11, op, h, h, h);
+        local_M = multiply(A11, sub(B12, B22, h), h, h, h);
     }
     else if (rank == 3)
     {
@@ -120,9 +113,7 @@ vector<double> strassen_mpi(const vector<double> &A, const vector<double> &B, in
         MPI_Recv(B21.data(), hs, MPI_DOUBLE, 0, TAG_B21, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
         MPI_Recv(B11.data(), hs, MPI_DOUBLE, 0, TAG_B11, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
-        vector<double> op;
-        sub(B21, B11, op, h);
-        local_M = multiply(A22, op, h, h, h);
+        local_M = multiply(A22, sub(B21, B11, h), h, h, h);
     }
     else if (rank == 4)
     {
@@ -134,9 +125,7 @@ vector<double> strassen_mpi(const vector<double> &A, const vector<double> &B, in
         MPI_Recv(A12.data(), hs, MPI_DOUBLE, 0, TAG_A12, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
         MPI_Recv(B22.data(), hs, MPI_DOUBLE, 0, TAG_B22, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
-        vector<double> op;
-        add(A11, A12, op, h);
-        local_M = multiply(op, B22, h, h, h);
+        local_M = multiply(add(A11, A12, h), B22, h, h, h);
     }
     else if (rank == 5)
     {
@@ -150,10 +139,7 @@ vector<double> strassen_mpi(const vector<double> &A, const vector<double> &B, in
         MPI_Recv(B11.data(), hs, MPI_DOUBLE, 0, TAG_B11, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
         MPI_Recv(B12.data(), hs, MPI_DOUBLE, 0, TAG_B12, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
-        vector<double> op1, op2;
-        sub(A21, A11, op1, h);
-        add(B11, B12, op2, h);
-        local_M = multiply(op1, op2, h, h, h);
+        local_M = multiply(sub(A21, A11, h), add(B11, B12, h), h, h, h);
     }
     else if (rank == 6)
     {
@@ -167,10 +153,7 @@ vector<double> strassen_mpi(const vector<double> &A, const vector<double> &B, in
         MPI_Recv(B21.data(), hs, MPI_DOUBLE, 0, TAG_B21, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
         MPI_Recv(B22.data(), hs, MPI_DOUBLE, 0, TAG_B22, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
-        vector<double> op1, op2;
-        sub(A12, A22, op1, h);
-        add(B21, B22, op2, h);
-        local_M = multiply(op1, op2, h, h, h);
+        local_M = multiply(sub(A12, A22, h), add(B21, B22, h), h, h, h);
     }
 
     vector<double> M1, M2, M3, M4, M5, M6, M7;
@@ -202,23 +185,14 @@ vector<double> strassen_mpi(const vector<double> &A, const vector<double> &B, in
     if (rank == 0)
     {
         C.resize(m * n);
-        vector<double> C11, C12, C21, C22;
-        vector<double> op1;
         // C11 = M1 + M4 - M5 + M7
-        add(M1, M4, op1, h);
-        sub(op1, M5, op1, h);
-        add(op1, M7, C11, h);
-
+        auto C11 = add(sub(add(M1, M4, h), M5, h), M7, h);
         // C12 = M3 + M5
-        add(M3, M5, C12, h);
-
+        auto C12 = add(M3, M5, h);
         // C21 = M2 + M4
-        add(M2, M4, C21, h);
-
+        auto C21 = add(M2, M4, h);
         // C22 = M1 + M3 - M2 + M6
-        add(M1, M3, op1, h);
-        sub(op1, M2, op1, h);
-        add(op1, M6, C22, h);
+        auto C22 = add(sub(add(M1, M3, h), M2, h), M6, h);
 
         for (int i = 0; i < h; i++)
         {

@@ -1,8 +1,8 @@
 #include "matrix.h"
 
-void add(const vector<double> &A, const vector<double> &B, vector<double> &C, int size)
+vector<double> add(const vector<double> &A, const vector<double> &B, int size)
 {
-    C.resize(size * size);
+    vector<double> C(size * size);
     using simd_type = simd<double>;
     constexpr int simd_size = simd_type::size();
     int i = 0;
@@ -17,11 +17,12 @@ void add(const vector<double> &A, const vector<double> &B, vector<double> &C, in
     {
         C[i] = A[i] + B[i];
     }
+    return C;
 }
 
-void sub(const vector<double> &A, const vector<double> &B, vector<double> &C, int size)
+vector<double> sub(const vector<double> &A, const vector<double> &B, int size)
 {
-    C.resize(size * size);
+    vector<double> C(size * size);
     using simd_type = simd<double>;
     constexpr int simd_size = simd_type::size();
     int i = 0;
@@ -36,4 +37,5 @@ void sub(const vector<double> &A, const vector<double> &B, vector<double> &C, in
     {
         C[i] = A[i] - B[i];
     }
+    return C;
 }

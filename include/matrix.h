@@ -24,8 +24,8 @@ enum MPITag
 };
 #endif
 
-void add(const vector<double> &A, const vector<double> &B, vector<double> &C, int size);
-void sub(const vector<double> &A, const vector<double> &B, vector<double> &C, int size);
+vector<double> add(const vector<double> &A, const vector<double> &B, int size);
+vector<double> sub(const vector<double> &A, const vector<double> &B, int size);
 
 // A: m * n
 // B: n * p

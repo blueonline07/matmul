@@ -54,12 +54,13 @@ $(OBJ_DIR)/strassen_omp.o: src/strassen_omp.cpp | $(OBJ_DIR)
 $(OBJ_DIR)/multiply_mpi.o: src/multiply_mpi.cpp | $(OBJ_DIR)
 	$(CXX_MPI) $(CXXFLAGS) -c $< -o $@
 
-$(OBJ_DIR)/strassen_mpi.o: src/strassen_mpi.cpp | $(OBJ_DIR)
-	$(CXX_MPI) $(CXXFLAGS) -c $< -o $@
-
 # Hybrid objects
 $(OBJ_DIR)/multiply_hybrid.o: src/multiply_hybrid.cpp | $(OBJ_DIR)
 	$(CXX_MPI) $(CXXFLAGS) $(OMPFLAGS) -c $< -o $@
+
+#strassen objs
+$(OBJ_DIR)/strassen_mpi.o: src/strassen_mpi.cpp | $(OBJ_DIR)
+	$(CXX_MPI) $(CXXFLAGS) -c $< -o $@
 
 $(OBJ_DIR)/strassen_hybrid.o: src/strassen_hybrid.cpp | $(OBJ_DIR)
 	$(CXX_MPI) $(CXXFLAGS) $(OMPFLAGS) -c $< -o $@
@@ -70,8 +71,9 @@ $(OBJ_DIR)/strassen_hybrid.o: src/strassen_hybrid.cpp | $(OBJ_DIR)
 # Dependencies
 TEST_SERIAL_OBJS = $(OBJ_DIR)/multiply.o $(OBJ_DIR)/strassen.o $(OBJ_DIR)/utils.o $(OBJ_DIR)/test_utils.o
 TEST_OMP_OBJS = $(OBJ_DIR)/multiply_openmp.o $(OBJ_DIR)/strassen_omp.o $(OBJ_DIR)/utils.o $(OBJ_DIR)/test_utils.o
-TEST_MPI_OBJS = $(OBJ_DIR)/multiply_mpi.o $(OBJ_DIR)/strassen_mpi.o $(OBJ_DIR)/utils.o $(OBJ_DIR)/test_utils.o $(OBJ_DIR)/multiply.o
-TEST_HYBRID_OBJS = $(OBJ_DIR)/multiply_hybrid.o $(OBJ_DIR)/strassen_hybrid.o $(OBJ_DIR)/utils.o $(OBJ_DIR)/test_utils.o $(OBJ_DIR)/multiply_openmp.o
+TEST_MPI_OBJS = $(OBJ_DIR)/multiply_mpi.o $(OBJ_DIR)/utils.o $(OBJ_DIR)/test_utils.o $(OBJ_DIR)/multiply.o
+TEST_HYBRID_OBJS = $(OBJ_DIR)/multiply_hybrid.o $(OBJ_DIR)/utils.o $(OBJ_DIR)/test_utils.o $(OBJ_DIR)/multiply_openmp.o
+TEST_STRASSEN_OBJS = $(OBJ_DIR)/strassen_mpi.o $(OBJ_DIR)/strassen_hybrid.o  $(OBJ_DIR)/multiply_openmp.o $(OBJ_DIR)/utils.o $(OBJ_DIR)/multiply.o $(OBJ_DIR)/test_utils.o
 
 # Linking rules
 $(BIN_DIR)/test_serial: tests/test_serial.cpp $(TEST_SERIAL_OBJS) | $(BIN_DIR)
@@ -86,6 +88,8 @@ $(BIN_DIR)/test_mpi: tests/test_mpi.cpp $(TEST_MPI_OBJS) | $(BIN_DIR)
 $(BIN_DIR)/test_hybrid: tests/test_hybrid.cpp $(TEST_HYBRID_OBJS) | $(BIN_DIR)
 	$(CXX_MPI) $(CXXFLAGS) $(OMPFLAGS) -o $@ $< $(TEST_HYBRID_OBJS)
 
+$(BIN_DIR)/test_strassen: tests/test_strassen.cpp $(TEST_STRASSEN_OBJS) | $(BIN_DIR)
+	$(CXX_MPI) $(CXXFLAGS) $(OMPFLAGS) -o $@ $< $(TEST_STRASSEN_OBJS)
 
 # --- Run and Clean ---
 
@@ -98,6 +102,7 @@ test_omp: $(BIN_DIR)/test_omp
 	./$< $(N) OMP_NUM_THREADS=$(OMP_NUM_THREADS)
 
 test_mpi: $(BIN_DIR)/test_mpi
+	test_mpi: $(BIN_DIR)/test_mpi
 	@echo "Running MPI test (N=$(N))..."
 ifdef HOSTS
 	mpirun -np $(MPI_NUM_PROC) -hosts $(HOSTS) ./$< $(N)
@@ -111,6 +116,14 @@ ifdef HOSTS
 	mpirun -np $(MPI_NUM_PROC) -hosts $(HOSTS) ./$< $(N) OMP_NUM_THREADS=$(OMP_NUM_THREADS)
 else
 	mpirun -np $(MPI_NUM_PROC) ./$< $(N) OMP_NUM_THREADS=$(OMP_NUM_THREADS)
+endif
+ 
+test_strassen: $(BIN_DIR)/test_strassen
+	@echo "Running Strassen tests (N=$(N))..."
+ifdef HOSTS
+	mpirun -np 7 -hosts $(HOSTS) ./$< $(N)
+else
+	mpirun -np 7 ./$< $(N)
 endif
 
 clean:
