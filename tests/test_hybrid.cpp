@@ -29,7 +29,9 @@ void test_hybrid(int N, int rank, int size)
     if (rank == 0)
     {
         cout << chrono::duration_cast<chrono::duration<double>>(t1 - t0).count() << endl;
+        t0 = chrono::high_resolution_clock::now();
         assert(C == libcheck(A, B, m, n, p));
+        cout << "eigen: " << chrono::duration_cast<chrono::duration<double>>(t1 - t0).count() << endl;
     }
 }
 
