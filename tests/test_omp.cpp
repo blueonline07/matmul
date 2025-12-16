@@ -21,10 +21,7 @@ void test_omp(int N)
     vector<double> C = multiply_omp(A, B, m, n, p);
     auto t1 = chrono::high_resolution_clock::now();
     cout << chrono::duration_cast<chrono::duration<double>>(t1 - t0).count() << endl;
-    t0 = chrono::high_resolution_clock::now();
     assert(C == libcheck(A, B, m, n, p));
-    t1 = chrono::high_resolution_clock::now();
-    cout << "eigen: " << chrono::duration_cast<chrono::duration<double>>(t1 - t0).count() << endl;
 }
 
 void test_strassen_omp(int N)
@@ -46,10 +43,7 @@ void test_strassen_omp(int N)
     vector<double> C = strassen_omp(A, B, m, n, p);
     auto t1 = chrono::high_resolution_clock::now();
     cout << chrono::duration_cast<chrono::duration<double>>(t1 - t0).count() << endl;
-    t0 = chrono::high_resolution_clock::now();
     assert(C == libcheck(A, B, m, n, p));
-    t1 = chrono::high_resolution_clock::now();
-    cout << "eigen: " << chrono::duration_cast<chrono::duration<double>>(t1 - t0).count() << endl;
 }
 
 int main(int argc, char *argv[])
