@@ -23,6 +23,7 @@ void test_omp(int N)
     cout << chrono::duration_cast<chrono::duration<double>>(t1 - t0).count() << endl;
     t0 = chrono::high_resolution_clock::now();
     assert(C == libcheck(A, B, m, n, p));
+    t1 = chrono::high_resolution_clock::now();
     cout << "eigen: " << chrono::duration_cast<chrono::duration<double>>(t1 - t0).count() << endl;
 }
 
@@ -47,6 +48,7 @@ void test_strassen_omp(int N)
     cout << chrono::duration_cast<chrono::duration<double>>(t1 - t0).count() << endl;
     t0 = chrono::high_resolution_clock::now();
     assert(C == libcheck(A, B, m, n, p));
+    t1 = chrono::high_resolution_clock::now();
     cout << "eigen: " << chrono::duration_cast<chrono::duration<double>>(t1 - t0).count() << endl;
 }
 
