@@ -39,3 +39,11 @@ vector<double> sub(const vector<double> &A, const vector<double> &B, int size)
     }
     return C;
 }
+
+int next_pow2(int x)
+{
+    int p = 1;
+    while (p < x)
+        p <<= 1;
+    return p;
+}

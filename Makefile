@@ -102,7 +102,6 @@ test_omp: $(BIN_DIR)/test_omp
 	./$< $(N) OMP_NUM_THREADS=$(OMP_NUM_THREADS)
 
 test_mpi: $(BIN_DIR)/test_mpi
-	test_mpi: $(BIN_DIR)/test_mpi
 	@echo "Running MPI test (N=$(N))..."
 ifdef HOSTS
 	mpirun -np $(MPI_NUM_PROC) -hosts $(HOSTS) ./$< $(N)

@@ -2,7 +2,7 @@
 #include <chrono>
 #include <cassert>
 
-vector<double> libcheck(const vector<double> &, const vector<double> &, int , int, int);
+vector<double> libcheck(const vector<double> &, const vector<double> &, int, int, int);
 
 void test_strassen_hybrid(int, int, int);
 void test_strassen_mpi(int, int, int);

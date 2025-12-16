@@ -3,18 +3,38 @@
 
 vector<double> strassen_mpi(const vector<double> &A, const vector<double> &B, int m, int n, int p, int rank, int size)
 {
+    if (size < 7 && rank == 0)
+        throw runtime_error("Strassen requires at least 7 MPI processes");
     int workers = min(size, 7);
     if (rank >= workers)
     {
         return vector<double>();
     }
+    int m_padded = next_pow2(m);
+    int n_padded = next_pow2(n);
+    int p_padded = next_pow2(p);
+    int N = max(m_padded, max(n_padded, p_padded));
 
-    int h = m / 2;
+    int h = N / 2;
     int hs = h * h;
     vector<double> A11, A12, A21, A22;
     vector<double> B11, B12, B21, B22;
+    vector<double> A_pad, B_pad;
     if (rank == 0)
     {
+        A_pad.assign(N * N, 0.0);
+        B_pad.assign(N * N, 0.0);
+
+        // Copy A (m x n)
+        for (int i = 0; i < m; i++)
+            for (int j = 0; j < n; j++)
+                A_pad[i * N + j] = A[i * n + j];
+
+        // Copy B (n x p)
+        for (int i = 0; i < n; i++)
+            for (int j = 0; j < p; j++)
+                B_pad[i * N + j] = B[i * p + j];
+
         A11.resize(hs);
         A12.resize(hs);
         A21.resize(hs);
@@ -28,15 +48,15 @@ vector<double> strassen_mpi(const vector<double> &A, const vector<double> &B, in
         {
             for (int j = 0; j < h; j++)
             {
-                A11[i * h + j] = A[i * m + j];
-                A12[i * h + j] = A[i * m + j + h];
-                A21[i * h + j] = A[(i + h) * m + j];
-                A22[i * h + j] = A[(i + h) * m + j + h];
+                A11[i * h + j] = A_pad[i * N + j];
+                A12[i * h + j] = A_pad[i * N + j + h];
+                A21[i * h + j] = A_pad[(i + h) * N + j];
+                A22[i * h + j] = A_pad[(i + h) * N + j + h];
 
-                B11[i * h + j] = B[i * n + j];
-                B12[i * h + j] = B[i * n + j + h];
-                B21[i * h + j] = B[(i + h) * n + j];
-                B22[i * h + j] = B[(i + h) * n + j + h];
+                B11[i * h + j] = B_pad[i * N + j];
+                B12[i * h + j] = B_pad[i * N + j + h];
+                B21[i * h + j] = B_pad[(i + h) * N + j];
+                B22[i * h + j] = B_pad[(i + h) * N + j + h];
             }
         }
     }
@@ -168,23 +188,23 @@ vector<double> strassen_mpi(const vector<double> &A, const vector<double> &B, in
         M6.resize(hs);
         M7.resize(hs);
         M1 = local_M;
-        MPI_Recv(M2.data(), hs, MPI_DOUBLE, 1, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-        MPI_Recv(M3.data(), hs, MPI_DOUBLE, 2, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-        MPI_Recv(M4.data(), hs, MPI_DOUBLE, 3, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-        MPI_Recv(M5.data(), hs, MPI_DOUBLE, 4, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-        MPI_Recv(M6.data(), hs, MPI_DOUBLE, 5, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-        MPI_Recv(M7.data(), hs, MPI_DOUBLE, 6, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        MPI_Recv(M2.data(), hs, MPI_DOUBLE, 1, TAG_RESULT, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        MPI_Recv(M3.data(), hs, MPI_DOUBLE, 2, TAG_RESULT, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        MPI_Recv(M4.data(), hs, MPI_DOUBLE, 3, TAG_RESULT, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        MPI_Recv(M5.data(), hs, MPI_DOUBLE, 4, TAG_RESULT, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        MPI_Recv(M6.data(), hs, MPI_DOUBLE, 5, TAG_RESULT, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        MPI_Recv(M7.data(), hs, MPI_DOUBLE, 6, TAG_RESULT, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
     }
     else if (rank >= 1 && rank <= 6)
     {
-        MPI_Send(local_M.data(), hs, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD);
+        MPI_Send(local_M.data(), hs, MPI_DOUBLE, 0, TAG_RESULT, MPI_COMM_WORLD);
     }
 
-    vector<double> C;
+    vector<double> C, C_pad;
 
     if (rank == 0)
     {
-        C.resize(m * n);
+        C_pad.resize(N * N);
         // C11 = M1 + M4 - M5 + M7
         auto C11 = add(sub(add(M1, M4, h), M5, h), M7, h);
         // C12 = M3 + M5
@@ -198,12 +218,18 @@ vector<double> strassen_mpi(const vector<double> &A, const vector<double> &B, in
         {
             for (int j = 0; j < h; j++)
             {
-                C[i * m + j] = C11[i * h + j];
-                C[i * m + j + h] = C12[i * h + j];
-                C[(i + h) * m + j] = C21[i * h + j];
-                C[(i + h) * m + j + h] = C22[i * h + j];
+                C_pad[i * N + j] = C11[i * h + j];
+                C_pad[i * N + j + h] = C12[i * h + j];
+                C_pad[(i + h) * N + j] = C21[i * h + j];
+                C_pad[(i + h) * N + j + h] = C22[i * h + j];
             }
         }
+
+        C.resize(m * p);
+
+        for (int i = 0; i < m; i++)
+            for (int j = 0; j < p; j++)
+                C[i * p + j] = C_pad[i * N + j];
     }
 
     return C;
