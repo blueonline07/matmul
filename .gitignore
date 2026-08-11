@@ -16,3 +16,6 @@ obj/
 
 # Backup files
 *.bak
+
+# Benchmark output
+results_N*.csv

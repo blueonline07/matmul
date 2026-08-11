@@ -18,10 +18,10 @@ OBJ_DIR = obj
 BIN_DIR = bin
 
 # Phony targets
-.PHONY: all test clean run_test_serial run_test_omp run_test_mpi run_test_hybrid
+.PHONY: all test clean test_serial test_omp test_mpi test_hybrid test_strassen
 
 # Default target
-all: $(BIN_DIR)/test_serial $(BIN_DIR)/test_omp $(BIN_DIR)/test_mpi $(BIN_DIR)/test_hybrid
+all: $(BIN_DIR)/test_serial $(BIN_DIR)/test_omp $(BIN_DIR)/test_mpi $(BIN_DIR)/test_hybrid $(BIN_DIR)/test_strassen
 
 # Create directories
 $(OBJ_DIR) $(BIN_DIR):
@@ -93,13 +93,15 @@ $(BIN_DIR)/test_strassen: tests/test_strassen.cpp $(TEST_STRASSEN_OBJS) | $(BIN_
 
 # --- Run and Clean ---
 
+test: test_serial test_omp test_mpi test_hybrid test_strassen
+
 test_serial: $(BIN_DIR)/test_serial
 	@echo "Running serial test (N=$(N))..."
 	./$< $(N)
 
 test_omp: $(BIN_DIR)/test_omp
-	@echo "Running OpenMP test (N=$(N))..."
-	./$< $(N) OMP_NUM_THREADS=$(OMP_NUM_THREADS)
+	@echo "Running OpenMP test (N=$(N), threads=$(OMP_NUM_THREADS))..."
+	OMP_NUM_THREADS=$(OMP_NUM_THREADS) ./$< $(N)
 
 test_mpi: $(BIN_DIR)/test_mpi
 	@echo "Running MPI test (N=$(N))..."
@@ -110,11 +112,11 @@ else
 endif
 
 test_hybrid: $(BIN_DIR)/test_hybrid
-	@echo "Running hybrid test (N=$(N))..."
+	@echo "Running hybrid test (N=$(N), threads=$(OMP_NUM_THREADS))..."
 ifdef HOSTS
-	mpirun -np $(MPI_NUM_PROC) -hosts $(HOSTS) ./$< $(N) OMP_NUM_THREADS=$(OMP_NUM_THREADS)
+	OMP_NUM_THREADS=$(OMP_NUM_THREADS) mpirun -np $(MPI_NUM_PROC) -hosts $(HOSTS) ./$< $(N)
 else
-	mpirun -np $(MPI_NUM_PROC) ./$< $(N) OMP_NUM_THREADS=$(OMP_NUM_THREADS)
+	OMP_NUM_THREADS=$(OMP_NUM_THREADS) mpirun -np $(MPI_NUM_PROC) ./$< $(N)
 endif
  
 test_strassen: $(BIN_DIR)/test_strassen
